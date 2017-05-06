@@ -14,9 +14,11 @@ HasKnowledge is designed for studying for classes or for anything else you study
 * Implement summaries and other tools
 
 # Technology
-Server: Haskell and the Yesod web framework, chosen for type safety, algebraic data types and Monad and Functor.  The learning curve is difficult, but the reward is concise, readable code and excellent safety--the type system will do a lot of work for you. Warp, the standard Yesod server, is also asynchronous by default and performs well.
+Server: FreeBSD, chosen for security, performance and stability (also, the daemon utility is awesome).  Running on AWS EC2.
 
-Backend: Some sort of SQL (I'll decide soon), accessed via Persistent, a functional-relational mapping library with a DSL for specifying table structure and, as with Yesod (being part of the same family of libraries), a great deal of type safety.
+Server-side: Haskell and the Yesod web framework, chosen for type safety, algebraic data types and Monad and Functor.  The learning curve is difficult, but the reward is concise, readable code and excellent safety--the type system will do a lot of work for you. Warp, the standard Yesod server, is also asynchronous by default and performs well.
+
+Backend: MySQL, accessed via Persistent, a functional-relational mapping library with a DSL for specifying table structure and, as with Yesod (being part of the same family of libraries), a great deal of type safety.
 
 Front-end: I will initially implement it with plain HTML simply for ease of development while I work on the server-side, but once that is complete the front-end will be re-implemented with PureScript, using an as-yet-undecided front-end framework (probably Halogen) and interacting with the backend through a JSON API.
 
