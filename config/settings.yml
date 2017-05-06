@@ -25,7 +25,7 @@ ip-from-header: "_env:IP_FROM_HEADER:false"
 
 database:
   user:     "_env:MYSQL_USER:hasknowledge"
-  password: "_env:MYSQL_PASSWORD:hasknowledge"
+  password: "_env:MYSQL_PASSWORD:test-password-123"
   host:     "_env:MYSQL_HOST:localhost"
   port:     "_env:MYSQL_PORT:5432"
   # See config/test-settings.yml for an override during tests

@@ -22,8 +22,6 @@ library
                      Settings.StaticFiles
                      Handler.Common
                      Handler.Home
-                     Handler.Comment
-                     Handler.Profile
 
     if flag(dev) || flag(library-only)
         cpp-options:   -DDEVELOPMENT
@@ -52,8 +50,7 @@ library
     build-depends:
                    -- Due to a bug in GHC 8.0.1, we block its usage
                    -- See: https://ghc.haskell.org/trac/ghc/ticket/12130
-                   base                          >= 4.8.2.0    && < 4.9
-                                              || >= 4.9.1.0    && < 5
+                   base                          
 
                  , yesod                         >= 1.4.3      && < 1.5
                  , yesod-core                    >= 1.4.30     && < 1.5

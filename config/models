@@ -1,12 +1,12 @@
 User
     ident Text
-    password Text Maybe
+    password Text Maybe default=NULL
     UniqueUser ident
     deriving Typeable
 Email
     email Text
     userId UserId Maybe
-    verkey Text Maybe
+    verkey Text Maybe default=NULL
     UniqueEmail email
 Comment json -- Adding "json" causes ToJSON and FromJSON instances to be derived.
     message Text
