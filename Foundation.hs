@@ -81,38 +81,38 @@ instance Yesod App where
 
     defaultLayout widget = do
         master <- getYesod
-        mmsg <- getMessage
+        -- mmsg <- getMessage
 
-        muser <- maybeAuthPair
-        mcurrentRoute <- getCurrentRoute
+        -- muser <- maybeAuthPair
+        -- mcurrentRoute <- getCurrentRoute
 
-        -- Get the breadcrumbs, as defined in the YesodBreadcrumbs instance.
-        (title, parents) <- breadcrumbs
+        -- -- Get the breadcrumbs, as defined in the YesodBreadcrumbs instance.
+        -- (title, parents) <- breadcrumbs
 
-        -- Define the menu items of the header.
-        let menuItems =
-                [ NavbarLeft $ MenuItem
-                    { menuItemLabel = "Home"
-                    , menuItemRoute = HomeR
-                    , menuItemAccessCallback = True
-                    }
-                , NavbarRight $ MenuItem
-                    { menuItemLabel = "Login"
-                    , menuItemRoute = AuthR LoginR
-                    , menuItemAccessCallback = isNothing muser
-                    }
-                , NavbarRight $ MenuItem
-                    { menuItemLabel = "Logout"
-                    , menuItemRoute = AuthR LogoutR
-                    , menuItemAccessCallback = isJust muser
-                    }
-                ]
+        -- -- Define the menu items of the header.
+        -- let menuItems =
+        --         [ NavbarLeft $ MenuItem
+        --             { menuItemLabel = "Home"
+        --             , menuItemRoute = HomeR
+        --             , menuItemAccessCallback = True
+        --             }
+        --         , NavbarRight $ MenuItem
+        --             { menuItemLabel = "Login"
+        --             , menuItemRoute = AuthR LoginR
+        --             , menuItemAccessCallback = isNothing muser
+        --             }
+        --         , NavbarRight $ MenuItem
+        --             { menuItemLabel = "Logout"
+        --             , menuItemRoute = AuthR LogoutR
+        --             , menuItemAccessCallback = isJust muser
+        --             }
+        --         ]
 
-        let navbarLeftMenuItems = [x | NavbarLeft x <- menuItems]
-        let navbarRightMenuItems = [x | NavbarRight x <- menuItems]
+        -- let navbarLeftMenuItems = [x | NavbarLeft x <- menuItems]
+        -- let navbarRightMenuItems = [x | NavbarRight x <- menuItems]
 
-        let navbarLeftFilteredMenuItems = [x | x <- navbarLeftMenuItems, menuItemAccessCallback x]
-        let navbarRightFilteredMenuItems = [x | x <- navbarRightMenuItems, menuItemAccessCallback x]
+        -- let navbarLeftFilteredMenuItems = [x | x <- navbarLeftMenuItems, menuItemAccessCallback x]
+        -- let navbarRightFilteredMenuItems = [x | x <- navbarRightMenuItems, menuItemAccessCallback x]
 
         -- We break up the default layout into two components:
         -- default-layout is the contents of the body tag, and
