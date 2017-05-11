@@ -3,6 +3,7 @@ module Handler.Home where
 import Import
 import Yesod.Form.Bootstrap3 (BootstrapFormLayout (..), renderBootstrap3)
 import Text.Julius (RawJS (..))
+import Handler.Account (usernameForm)
 
 -- Define our data that will be used for creating the form.
 data FileForm = FileForm
@@ -18,8 +19,12 @@ data FileForm = FileForm
 -- functions. You can spread them across multiple files if you are so
 -- inclined, or create a single monolithic file.
 getHomeR :: Handler Html
-getHomeR = defaultLayout $ do
-        aDomId <- newIdent
-        setTitle "HasKnowledge"
-        $(widgetFile "homepage")
+getHomeR = do
+        mauth <- maybeAuth
+        (userform, enctype) <- generateFormPost usernameForm
+        let loginUrl = "/auth/page/googleemail2/forward" :: Text
+        defaultLayout $ do
+          aDomId <- newIdent
+          setTitle "HasKnowledge"
+          $(widgetFile "homepage")
 

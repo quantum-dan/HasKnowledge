@@ -6,9 +6,8 @@ import Text.Hamlet          (hamletFile)
 import Text.Jasmine         (minifym)
 
 -- Used only when in "auth-dummy-login" setting is enabled.
-import Yesod.Auth.Dummy
 
-import Yesod.Auth.OpenId    (authOpenId, IdentifierType (Claimed))
+import Yesod.Auth.GoogleEmail2
 import Yesod.Default.Util   (addStaticContentExternal)
 import Yesod.Core.Types     (Logger)
 import qualified Yesod.Core.Unsafe as Unsafe
@@ -134,6 +133,7 @@ instance Yesod App where
     isAuthorized FaviconR _ = return Authorized
     isAuthorized RobotsR _ = return Authorized
     isAuthorized (StaticR _) _ = return Authorized
+    isAuthorized UsernameR _ = return Authorized
 
 
     -- This function creates static content files in the static folder
@@ -200,12 +200,14 @@ instance YesodAuth App where
             Nothing -> Authenticated <$> insert User
                 { userIdent = credsIdent creds
                 , userPassword = Nothing
+                , userName = Nothing
                 }
 
     -- You can add other plugins like Google Email, email or OAuth here
-    authPlugins app = [authOpenId Claimed []] ++ extraAuthPlugins
+    authPlugins app = [authGoogleEmail clientId clientSecret]
         -- Enable authDummy login if enabled.
-        where extraAuthPlugins = [authDummy | appAuthDummyLogin $ appSettings app]
+        where clientId = "144903804180-5v4f6985tps2l1s0dni7s9vokso8m1nf.apps.googleusercontent.com"
+              clientSecret = "nKtsRIVolkXEBQyi_UGuCraf"
 
     authHttpManager = getHttpManager
 

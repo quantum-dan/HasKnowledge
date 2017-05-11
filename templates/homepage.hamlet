@@ -2,3 +2,19 @@
 <div>
   <h3>What is HasKnowledge?
   <p>HasKnowledge is a tool where you can create and share quizzes, content summaries, etc.  You can fill out the quizzes and summaries as you work your way through a class, textbook, etc, and then you have everything to need to study for exams or refresh your memory later.
+
+<form method=POST action=@{UsernameR} enctype=#{enctype}>
+      ^{userform}
+      <button>Submit
+
+$maybe auth <- mauth
+       <p>UserId: #{userIdent (entityVal auth)} 
+                  $maybe displayName <- userName (entityVal auth)
+                         Display name: #{displayName}
+                  $nothing
+                         Display name not set.
+                  <br>
+                  <a href=@{AuthR LogoutR}>Logout
+$nothing
+        <p>
+          <a href=#{loginUrl}>Login

@@ -1,6 +1,7 @@
 -- Users
 User
     ident Text
+    name Text Maybe default=NULL
     password Text Maybe default=NULL
     UniqueUser ident
     deriving Typeable
