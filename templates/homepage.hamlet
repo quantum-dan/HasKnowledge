@@ -13,7 +13,9 @@ $maybe auth <- mauth
                          Display name: #{displayName}
                   $nothing
                          Display name not set.
-                  <br>
+       <p>
+                  <a href=@{QuizzesR}>Quizzes
+       <p>
                   <a href=@{AuthR LogoutR}>Logout
 $nothing
         <p>

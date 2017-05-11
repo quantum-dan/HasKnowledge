@@ -1,0 +1,11 @@
+<h3>Quizzes
+<div>
+  <h4>Create a Quiz
+  <form method=POST action=@{QuizR} enctype=#{enctype}>
+        ^{quizForm}
+        <button>Submit
+<ul style="text-align:left">List of Quizzes
+  $forall quiz <- quizzes
+          <li>#{quizTitle (entityVal quiz)}
+
+<a href=@{HomeR}>Home

@@ -6,4 +6,7 @@
 
 / HomeR GET
 
-/username UsernameR POST
+/username UsernameR POST GET
+
+/quizzes QuizzesR GET
+/quiz QuizR POST

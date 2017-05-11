@@ -21,6 +21,9 @@ postUsernameR = do
       _ -> defaultLayout [whamlet|<p>Form error|]
     Nothing -> defaultLayout [whamlet|<p>Not logged in|]
 
+getUsernameR :: Handler Html
+getUsernameR = redirect HomeR
+
 updateUsername :: Text -> Entity User -> HandlerT App IO ()
 updateUsername newUsername auth = runDB $
   update (entityKey auth) [UserName =. Just newUsername]
