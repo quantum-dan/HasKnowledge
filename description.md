@@ -2,7 +2,16 @@
 In-depth explanation of the technical aspects of the project.
 
 ## Design and Functionality
-Description of how everything works, in precise detail.
+Explanation of what does what.
+
+### Homepage
+Currently home to the logo, the login/logout link, and the display name change form.
+
+### Logging In
+Handled automatically by the YesodAuth instance in Foundation.hs.  Currently implements only Google sign-in, where the user's identifier is their Google email.  Other auth systems can be added simply by adding their plugins to the list; the only change otherwise required would be to modify the login link, which currently points directly to the Google sign-in system.
+
+### User Accounts
+Currently the only modifiable feature is display name, which is optional.  Password changes are not necessary as the login system is Google account-based rather than email/password.  Display name is currently modified via a form on the homepage.  Account management requests are handled in Account.hs.
 
 ## Key Libraries
 * Yesod: web framework
