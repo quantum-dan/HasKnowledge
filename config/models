@@ -21,10 +21,10 @@ Quiz json
 Question json
     quizId QuizId
     question Text
-    correctAnswer AnswerId
 Answer json
     questionId QuestionId
     content Text
+    correct Bool
 SharedQuiz json -- Stores which users can access a given quiz, apart from its owner (if it is set to specific-user sharing); if there is no entry, no access
     quizId QuizId
     userId UserId

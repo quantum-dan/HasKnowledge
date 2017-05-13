@@ -13,6 +13,9 @@ Handled automatically by the YesodAuth instance in Foundation.hs.  Currently imp
 ### User Accounts
 Currently the only modifiable feature is display name, which is optional.  Password changes are not necessary as the login system is Google account-based rather than email/password.  Display name is currently modified via a form on the homepage.  Account management requests are handled in Account.hs.
 
+### Quizzes
+Quizzes can be created via a form specifying name, topic and public or private.  The quizzes can then be viewed by anyone who has access.  Quizzes are handled in Quiz.hs.
+
 ## Key Libraries
 * Yesod: web framework
 * Persistent: database framework

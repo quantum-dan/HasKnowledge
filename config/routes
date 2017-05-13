@@ -9,4 +9,7 @@
 /username UsernameR POST GET
 
 /quizzes QuizzesR GET
-/quiz QuizR POST
+/quiz/#QuizId QuizR GET
+/mkquiz MkQuizR POST
+
+/question/#QuizId QuestionR POST
