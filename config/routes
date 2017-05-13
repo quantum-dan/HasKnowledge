@@ -4,8 +4,12 @@
 /favicon.ico FaviconR GET
 /robots.txt RobotsR GET
 
-/ HomeR GET POST
+/ HomeR GET
 
-/comments CommentR POST
+/username UsernameR POST GET
 
-/profile ProfileR GET
+/quizzes QuizzesR GET
+/quiz/#QuizId QuizR GET
+/mkquiz MkQuizR POST
+
+/question/#QuizId QuestionR POST

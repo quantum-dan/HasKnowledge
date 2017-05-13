@@ -5,13 +5,21 @@ Quiz tool where you fill in your own question database as you learn, and can qui
 HasKnowledge is designed for studying for classes or for anything else you study for an extended period of time.  You can create your own subject quizzes, then fill in questions as you go along.  When you need to go back and study, you'll have a set of questions to quiz yourself on.  May also build in support for writing summaries etc and sharing quizzes.
 
 # Goals and Progress
+## Programming:
 * Started [Done]
-* Implement home page
-* Implement accounts
+* Implement home page [Done]
+* Implement accounts [Done]
 * Implement quizzes
 * Implement adding questions to quizzes
 * Implement sharing quizzes, either with the world or specified accounts
 * Implement summaries and other tools
+
+## Launching:
+* Determine backend technology [Done]
+* Determine front-end technology
+* Successfully run in a FreeBSD jail
+* Transfer jail to AWS EC2 and database to AWS RDS
+* Store front-end code on AWS S3 (after transitioning away from plain HTML)
 
 # Technology
 Server: FreeBSD, chosen for security, performance and stability (also, the daemon utility is awesome).  Running on AWS EC2.

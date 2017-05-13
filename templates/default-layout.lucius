@@ -1,3 +1,7 @@
+.main {
+      text-align: center;
+}
+
 .masthead,
 .navbar {
     background-color: rgb(27, 28, 29);
