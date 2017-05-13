@@ -8,4 +8,4 @@
               <p>#{questionQuestion $ entityVal question}
               <ul>
                 $forall answer <- answers
-                        <li>#{answerContent $ entityVal answer}, #{show $ answerCorrect (entityVal answer)}
+                        <li onclick=this.innerHTML+='(#{show $ answerCorrect (entityVal answer)})'>#{answerContent $ entityVal answer}

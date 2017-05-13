@@ -82,6 +82,11 @@ getQuizR qId = do
   (questionForm, enctype) <- generateFormPost createQuestionForm
   questions <- getQuestions qId
   defaultLayout $ do
+    toWidget [julius|
+                    function correct(c) {
+                      alert(c);
+                    }
+                    |]
     setTitle "Quiz"
     $(widgetFile "quiz")
 
