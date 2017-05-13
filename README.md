@@ -12,7 +12,7 @@ HasKnowledge is designed for studying for classes or for anything else you study
 * Implement quizzes [Done]
 * Implement adding questions to quizzes [Done]
 * Implement sharing quizzes, either with the world or specified accounts [Public done]
-* Implement summaries and other tools
+* Implement summaries and other tools [Done]
 
 ## Launching:
 * Determine backend technology [Done]

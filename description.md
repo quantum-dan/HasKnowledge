@@ -17,9 +17,11 @@ Currently the only modifiable feature is display name, which is optional.  Passw
 Quizzes can be created via a form specifying name, topic and public or private.  The quizzes can then be viewed by anyone who has access.  Quizzes are handled in Quiz.hs.
 Currently, the correct-answer-showing is primitive but working.
 
+### Summaries
+Summaries can be created via a form specifying name, topic, content and public or private.  The summaries can then be viewed by anyone who has access.  Summaries are handled in Summary.hs.
+
 ## Next Steps
 ### Programming
-* Add summaries
 * Upgrade quiz answer-checking system (currently works, but very primitive)
 * Add basic styling so it doesn't look terrible
 * Implement JSON API
