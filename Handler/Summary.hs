@@ -47,12 +47,6 @@ getSummaryR sId = do
     Nothing -> redirect SummariesR
     Just summary -> defaultLayout $ do
       setTitle $ toHtml $ summaryTitle summary
-      toWidget [lucius|
-                      textarea {
-                        width: 60%;
-                        height: 30%;
-                      }
-                      |]
       $(widgetFile "summary")
 
 getSummary :: Key Summary -> Maybe (Entity User) -> HandlerT App IO (Maybe Summary)
