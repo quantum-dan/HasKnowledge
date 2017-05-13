@@ -13,3 +13,7 @@
 /mkquiz MkQuizR POST
 
 /question/#QuizId QuestionR POST
+
+/summaries SummariesR GET POST
+
+/summary/#SummaryId SummaryR GET

@@ -24,6 +24,7 @@ library
                      Handler.Home
                      Handler.Account
                      Handler.Quiz
+                     Handler.Summary
 
     if flag(dev) || flag(library-only)
         cpp-options:   -DDEVELOPMENT

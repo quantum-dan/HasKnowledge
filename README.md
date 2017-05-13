@@ -9,9 +9,9 @@ HasKnowledge is designed for studying for classes or for anything else you study
 * Started [Done]
 * Implement home page [Done]
 * Implement accounts [Done]
-* Implement quizzes
-* Implement adding questions to quizzes
-* Implement sharing quizzes, either with the world or specified accounts
+* Implement quizzes [Done]
+* Implement adding questions to quizzes [Done]
+* Implement sharing quizzes, either with the world or specified accounts [Public done]
 * Implement summaries and other tools
 
 ## Launching:

@@ -1,0 +1,9 @@
+<form method=POST action=@{SummariesR} enctype=#{enctype}>
+      ^{summaryForm}
+      <button>Submit
+
+<a href=@{HomeR}>Return
+<div>
+  $forall summary <- summaries
+          <div>
+            <a href=@{SummaryR (entityKey summary)}>#{summaryTitle $ entityVal summary} (#{summaryTopic $ entityVal summary})

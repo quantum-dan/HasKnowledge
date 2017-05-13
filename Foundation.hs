@@ -138,6 +138,8 @@ instance Yesod App where
     isAuthorized (QuizR _) _ = isAuthenticated
     isAuthorized MkQuizR _ = isAuthenticated
     isAuthorized (QuestionR _) _ = isAuthenticated
+    isAuthorized SummariesR False = return Authorized
+    isAuthorized (SummaryR _) _ = return Authorized
     isAuthorized _ _ = isAuthenticated
 
 
