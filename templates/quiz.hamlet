@@ -1,7 +1,8 @@
-<form method=POST action=@{QuestionR qId} enctype=#{enctype}>
-      ^{questionForm}
-      <button>Submit
-<br>
+$if ownsQuiz
+       <form method=POST action=@{QuestionR qId} enctype=#{enctype}>
+             ^{questionForm}
+             <button>Submit
+       <br>
 <ul style="text-align: left">
   $forall (question, answers) <- questions
           <li>
@@ -9,3 +10,4 @@
               <ul>
                 $forall answer <- answers
                         <li onclick=this.innerHTML+='(#{show $ answerCorrect (entityVal answer)})'>#{answerContent $ entityVal answer}
+<a href=@{QuizzesR}>Return

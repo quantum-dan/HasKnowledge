@@ -3,6 +3,8 @@
 
 <!-- Footer -->
 <footer .footer>
+    <p style="text-align:center">
+        <a href=@{HomeR}>Home
     <div .container>
         <p .text-muted>
             #{appCopyright $ appSettings master}

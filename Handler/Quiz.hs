@@ -60,7 +60,11 @@ getQuizzesR = do
   mAuth <- maybeAuth
   (quizForm, enctype) <- generateFormPost createQuizForm
   case mAuth of
-    Nothing -> redirect HomeR
+    Nothing -> do
+      quizzes <- getPublicQuizzes
+      defaultLayout $ do
+        setTitle "Quizzes"
+        $(widgetFile "quizlist")
     Just auth -> do
       quizzes <- getAvailableQuizzes $ entityKey auth
       defaultLayout $ do
@@ -81,6 +85,11 @@ getQuizR :: Key Quiz -> Handler Html
 getQuizR qId = do
   (questionForm, enctype) <- generateFormPost createQuestionForm
   questions <- getQuestions qId
+  mAuth <- maybeAuth
+  quiz <- runDB $ get qId
+  let ownsQuiz = case (quiz >>= (\q -> mAuth >>= (\m -> return (entityKey m == quizUserId q)))) of
+        Nothing -> False
+        Just x -> x
   defaultLayout $ do
     toWidget [julius|
                     function correct(c) {
@@ -115,6 +124,9 @@ getAvailableQuizzes uId = runDB $ do
   let quizFilter = foldr (||.) publicOrOwnFilter $ map (\id -> [QuizId ==. id]) sharedQuizIds
   quizzes <- selectList quizFilter []
   return quizzes
+
+getPublicQuizzes :: Handler [Entity Quiz]
+getPublicQuizzes = runDB $ selectList [QuizPublicAccess ==. True] []
 
 getAnswers :: Key Question -> HandlerT App IO [Entity Answer]
 getAnswers qId = runDB $ do
