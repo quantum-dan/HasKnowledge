@@ -1,7 +1,6 @@
 <div .navbar>
-     <a href=@{HomeR}>Home
-     <a href=@{QuizzesR}>Quizzes
-     <a href=@{SummariesR}>Summaries
+     $forall item <- menuItems
+             <a .menuitem href=@{menuItemUrl item}>#{menuItemName item}
 
 <div .main>
   ^{widget}
