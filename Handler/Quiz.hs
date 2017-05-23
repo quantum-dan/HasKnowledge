@@ -2,6 +2,7 @@ module Handler.Quiz where
 
 import Import
 import Yesod.Form.Jquery
+import Data.Aeson.Types (Result(..))
 
 data FormQuiz = FormQuiz {
   fqTitle :: Text,
@@ -29,16 +30,22 @@ createQuestionForm = renderDivs $ FormQuestion
   <*> areq textField "Answer 4" Nothing
   <*> areq checkBoxField "Correct?" Nothing
 
-createQuestion :: FormResult FormQuestion -> Key Quiz -> HandlerT App IO ()
-createQuestion formResult qId =
+createAnswers :: [(Text, Bool)] -> Key Question -> Handler ()
+createAnswers ((answer, correct):answers) qId = do
+  _ <- runDB $ insert (Answer qId answer correct)
+  createAnswers answers qId
+createAnswers [] _ = return ()
+
+createQuestion :: Question -> [(Text, Bool)] -> Key Quiz -> Handler ()
+createQuestion question answers qId = do
+  questionId <- runDB $ insert $ question {questionQuizId = qId}
+  _ <- createAnswers answers questionId
+  return ()
+
+createQuestionF :: FormResult FormQuestion -> Key Quiz -> HandlerT App IO ()
+createQuestionF formResult qId =
   case formResult of
-    FormSuccess (FormQuestion question a1 c1 a2 c2 a3 c3 a4 c4) -> runDB $ do
-        questionId <- insert (Question qId question)
-        _ <- insert (Answer questionId a1 c1)
-        _ <- insert (Answer questionId a2 c2)
-        _ <- insert (Answer questionId a3 c3)
-        _ <- insert (Answer questionId a4 c4)
-        return ()
+    FormSuccess (FormQuestion question a1 c1 a2 c2 a3 c3 a4 c4) -> createQuestion (Question qId question) [(a1, c1), (a2, c2), (a3, c3), (a4, c4)] qId
     _ -> return ()
 
 createQuizForm :: Html -> MForm Handler (FormResult FormQuiz, Widget)
@@ -47,13 +54,16 @@ createQuizForm = renderDivs $ FormQuiz
   <*> areq textField "Topic" Nothing
   <*> areq checkBoxField "Public" Nothing
 
-createQuiz :: FormResult FormQuiz -> Key User -> HandlerT App IO ()
-createQuiz formResult userId =
+createQuizF :: FormResult FormQuiz -> Key User -> HandlerT App IO ()
+createQuizF formResult userId =
   case formResult of
-    FormSuccess (FormQuiz title topic public) -> do
-      _ <- runDB $ insert (Quiz title userId topic public)
-      return ()
+    FormSuccess (FormQuiz title topic public) -> createQuiz (Quiz title userId topic public) userId
     _ -> return ()
+
+createQuiz :: Quiz -> Key User -> Handler ()
+createQuiz quiz userId = do
+  _ <- runDB $ insert $ quiz {quizUserId = userId}
+  return ()
 
 getQuizzesR :: Handler TypedContent
 getQuizzesR = do
@@ -77,12 +87,18 @@ getQuizzesR = do
 
 postMkQuizR :: Handler Html
 postMkQuizR = do
-  ((result, _), _) <- runFormPost createQuizForm
   mAuth <- maybeAuth
   case mAuth of
     Just auth -> do
-      createQuiz result (entityKey auth)
-      redirect QuizzesR
+      ((result, _), _) <- runFormPost createQuizForm
+      jsonQuiz <- parseJsonBody
+      case jsonQuiz of
+        Success quiz -> do
+          createQuiz quiz $ entityKey auth
+          redirect QuizzesR
+        Error _ -> do
+          createQuizF result (entityKey auth)
+          redirect QuizzesR
     Nothing -> redirect HomeR
 
 data QuizInfo = QuizInfo (Maybe Quiz) Bool
@@ -117,7 +133,6 @@ getQuizR qId = do
 
 postQuestionR :: Key Quiz -> Handler Html
 postQuestionR qId = do
-  ((result, _), _) <- runFormPost createQuestionForm
   mAuth <- maybeAuth
   case mAuth of
     Just auth -> do
@@ -126,8 +141,15 @@ postQuestionR qId = do
         Just quiz ->
           if (quizUserId quiz) == entityKey auth -- Verify that the person sending the request owns the quiz
             then do
-              createQuestion result qId
-              redirect (QuizR qId)
+              ((result, _), _) <- runFormPost createQuestionForm
+              jsonQuestion <- parseJsonBody
+              case jsonQuestion of
+                Success (question, answers) -> do
+                  createQuestion question answers qId
+                  redirect (QuizR qId)
+                Error _ -> do
+                  createQuestionF result qId
+                  redirect (QuizR qId)
             else redirect (QuizR qId)
         Nothing -> redirect HomeR
     Nothing -> redirect HomeR

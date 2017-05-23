@@ -1,6 +1,7 @@
 module Handler.Summary where
 
 import Import
+import Data.Aeson.Types (Result (..))
 
 data FormSummary = FormSummary {
   fsTitle :: Text,
@@ -29,17 +30,24 @@ getSummariesR = do
       setTitle "Summaries"
       $(widgetFile "summarylist")
 
-postSummariesR :: Handler Html
+postSummariesR :: Handler TypedContent
 postSummariesR = do
-  ((result, _), _) <- runFormPost createSummaryForm
   mAuth <- maybeAuth
   case mAuth of
     Nothing -> redirect HomeR
-    Just auth -> case result of
-      FormSuccess fs -> do
-        _ <- addSummary auth fs
-        redirect SummariesR
-      _ -> redirect SummariesR
+    Just auth -> do
+      mSummary <- parseJsonBody
+      ((result, _), _) <- runFormPost createSummaryForm
+      case mSummary of
+        Success summary -> do
+          _ <- addSummary auth summary
+          redirect SummariesR
+        Error _ ->
+          case result of
+            FormSuccess fs -> do
+              _ <- addSummaryForm auth fs
+              redirect SummariesR
+            _ -> redirect SummariesR
 
 getSummaryR :: Key Summary -> Handler TypedContent
 getSummaryR sId = do
@@ -63,10 +71,14 @@ getSummary sId mAuth = do
                                                 if (entityKey auth) == (summaryUserId summary) then Just summary else Nothing)
                         )
 
-addSummary :: Entity User -> FormSummary -> HandlerT App IO ()
-addSummary auth (FormSummary title topic content public) = do
+addSummaryForm :: Entity User -> FormSummary -> HandlerT App IO ()
+addSummaryForm auth (FormSummary title topic content public) = do
+  addSummary auth $ Summary title topic (entityKey auth) (unTextarea content) public
+
+addSummary :: Entity User -> Summary -> Handler ()
+addSummary auth summary = do
   let uId = entityKey auth
-  _ <- runDB $ insert $ Summary title topic uId (unTextarea content) public
+  _ <- runDB $ insert $ summary {summaryUserId = uId}
   return ()
 
 getSummaries :: Key User -> HandlerT App IO [Entity Summary]
