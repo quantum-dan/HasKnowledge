@@ -55,21 +55,25 @@ createQuiz formResult userId =
       return ()
     _ -> return ()
 
-getQuizzesR :: Handler Html
+getQuizzesR :: Handler TypedContent
 getQuizzesR = do
   mAuth <- maybeAuth
   (quizForm, enctype) <- generateFormPost createQuizForm
   case mAuth of
     Nothing -> do
       quizzes <- getPublicQuizzes
-      defaultLayout $ do
-        setTitle "Quizzes"
-        $(widgetFile "quizlist")
+      selectRep $ do
+        provideJson quizzes
+        provideRep $ defaultLayout $ do
+          setTitle "Quizzes"
+          $(widgetFile "quizlist")
     Just auth -> do
       quizzes <- getAvailableQuizzes $ entityKey auth
-      defaultLayout $ do
-        setTitle "Quizzes"
-        $(widgetFile "quizlist")
+      selectRep $ do
+        provideJson quizzes
+        provideRep $ defaultLayout $ do
+          setTitle "Quizzes"
+          $(widgetFile "quizlist")
 
 postMkQuizR :: Handler Html
 postMkQuizR = do
@@ -81,7 +85,16 @@ postMkQuizR = do
       redirect QuizzesR
     Nothing -> redirect HomeR
 
-getQuizR :: Key Quiz -> Handler Html
+data QuizInfo = QuizInfo (Maybe Quiz) Bool
+
+instance ToJSON QuizInfo where
+  toJSON (QuizInfo q o) = object
+    [
+      "maybequiz" .= q
+      , "owner" .= o
+    ]
+
+getQuizR :: Key Quiz -> Handler TypedContent
 getQuizR qId = do
   (questionForm, enctype) <- generateFormPost createQuestionForm
   questions <- getQuestions qId
@@ -94,9 +107,13 @@ getQuizR qId = do
         case quiz of
           Nothing -> False
           Just q -> quizPublicAccess q
-  defaultLayout $ do
-    setTitle "Quiz"
-    $(widgetFile "quiz")
+  selectRep $ do
+    provideJson $ case quizAccess of
+      True -> QuizInfo quiz ownsQuiz
+      False -> QuizInfo Nothing False
+    provideRep $ defaultLayout $ do
+      setTitle "Quiz"
+      $(widgetFile "quiz")
 
 postQuestionR :: Key Quiz -> Handler Html
 postQuestionR qId = do

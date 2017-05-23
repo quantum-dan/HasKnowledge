@@ -16,16 +16,18 @@ createSummaryForm = renderDivs $ FormSummary
   <*> areq textareaField "Summary" Nothing
   <*> areq checkBoxField "Public?" Nothing
 
-getSummariesR :: Handler Html
+getSummariesR :: Handler TypedContent
 getSummariesR = do
   (summaryForm, enctype) <- generateFormPost createSummaryForm
   mAuth <- maybeAuth
   summaries <- case mAuth of
     Just auth -> getSummaries $ entityKey auth
     Nothing -> getPublicSummaries
-  defaultLayout $ do
-    setTitle "Summaries"
-    $(widgetFile "summarylist")
+  selectRep $ do
+    provideJson summaries
+    provideRep $ defaultLayout $ do
+      setTitle "Summaries"
+      $(widgetFile "summarylist")
 
 postSummariesR :: Handler Html
 postSummariesR = do
@@ -39,15 +41,17 @@ postSummariesR = do
         redirect SummariesR
       _ -> redirect SummariesR
 
-getSummaryR :: Key Summary -> Handler Html
+getSummaryR :: Key Summary -> Handler TypedContent
 getSummaryR sId = do
   mAuth <- maybeAuth
   mSummary <- getSummary sId mAuth
   case mSummary of
     Nothing -> redirect SummariesR
-    Just summary -> defaultLayout $ do
-      setTitle $ toHtml $ summaryTitle summary
-      $(widgetFile "summary")
+    Just summary -> selectRep $ do
+      provideJson summary
+      provideRep $ defaultLayout $ do
+        setTitle $ toHtml $ summaryTitle summary
+        $(widgetFile "summary")
 
 getSummary :: Key Summary -> Maybe (Entity User) -> HandlerT App IO (Maybe Summary)
   -- Also verifies that the user has access to the summary in question
