@@ -1,10 +1,13 @@
+<div .navbar>
+     <a href=@{HomeR}>Home
+     <a href=@{QuizzesR}>Quizzes
+     <a href=@{SummariesR}>Summaries
+
 <div .main>
   ^{widget}
 
 <!-- Footer -->
 <footer .footer>
-    <p style="text-align:center">
-        <a href=@{HomeR}>Home
     <div .container>
         <p .text-muted>
             #{appCopyright $ appSettings master}

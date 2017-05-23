@@ -50,6 +50,7 @@ getSummaryR sId = do
       $(widgetFile "summary")
 
 getSummary :: Key Summary -> Maybe (Entity User) -> HandlerT App IO (Maybe Summary)
+  -- Also verifies that the user has access to the summary in question
 getSummary sId mAuth = do
   mSummary <- runDB $ get sId
   return $ mSummary >>= (\summary -> do

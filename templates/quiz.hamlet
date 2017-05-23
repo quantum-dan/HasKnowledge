@@ -3,11 +3,11 @@ $if ownsQuiz
              ^{questionForm}
              <button>Submit
        <br>
-<ul style="text-align: left">
-  $forall (question, answers) <- questions
+$if quizAccess
+    <ul style="text-align: left">
+        $forall (question, answers) <- questions
           <li>
               <p>#{questionQuestion $ entityVal question}
               <ul>
                 $forall answer <- answers
                         <li onclick=this.innerHTML+='(#{show $ answerCorrect (entityVal answer)})'>#{answerContent $ entityVal answer}
-<a href=@{QuizzesR}>Return

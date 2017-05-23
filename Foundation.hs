@@ -213,7 +213,6 @@ instance YesodAuth App where
 
     -- You can add other plugins like Google Email, email or OAuth here
     authPlugins app = [authGoogleEmail clientId clientSecret]
-        -- Enable authDummy login if enabled.
         where clientId = "144903804180-5v4f6985tps2l1s0dni7s9vokso8m1nf.apps.googleusercontent.com"
               clientSecret = "nKtsRIVolkXEBQyi_UGuCraf"
 

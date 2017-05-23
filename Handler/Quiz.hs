@@ -90,12 +90,11 @@ getQuizR qId = do
   let ownsQuiz = case (quiz >>= (\q -> mAuth >>= (\m -> return (entityKey m == quizUserId q)))) of
         Nothing -> False
         Just x -> x
+  let quizAccess = ownsQuiz ||
+        case quiz of
+          Nothing -> False
+          Just q -> quizPublicAccess q
   defaultLayout $ do
-    toWidget [julius|
-                    function correct(c) {
-                      alert(c);
-                    }
-                    |]
     setTitle "Quiz"
     $(widgetFile "quiz")
 
@@ -108,7 +107,7 @@ postQuestionR qId = do
       mQuiz <- runDB $ get qId
       case mQuiz of
         Just quiz ->
-          if (quizUserId quiz) == entityKey auth
+          if (quizUserId quiz) == entityKey auth -- Verify that the person sending the request owns the quiz
             then do
               createQuestion result qId
               redirect (QuizR qId)
@@ -121,7 +120,7 @@ getAvailableQuizzes uId = runDB $ do
   shared <- selectList [SharedQuizUserId ==. uId] []
   let publicOrOwnFilter = [QuizPublicAccess ==. True] ||. [QuizUserId ==. uId]
   let sharedQuizIds = map (sharedQuizQuizId . entityVal) shared
-  let quizFilter = foldr (||.) publicOrOwnFilter $ map (\id -> [QuizId ==. id]) sharedQuizIds
+  let quizFilter = foldr (||.) publicOrOwnFilter $ map (\id -> [QuizId ==. id]) sharedQuizIds -- All quizzes which are either public, owned by the user, or shared with the user
   quizzes <- selectList quizFilter []
   return quizzes
 
@@ -134,6 +133,7 @@ getAnswers qId = runDB $ do
   return answers
 
 getAllAnswers :: [Entity Question] -> HandlerT App IO [(Entity Question, [Entity Answer])]
+-- Loop to recursively get answers, paird with the appropriate questions, for a given quiz
 getAllAnswers (q:questions) = do
   answers <- getAnswers $ entityKey q
   rest <- getAllAnswers questions
