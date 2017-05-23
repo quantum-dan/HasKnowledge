@@ -1,0 +1,53 @@
+-- Users
+User
+    ident Text
+    name Text Maybe default=NULL
+    password Text Maybe default=NULL
+    UniqueUser ident
+    deriving Typeable
+Email
+    email Text
+    userId UserId Maybe
+    verkey Text Maybe default=NULL
+    UniqueEmail email
+
+-- Quizzes
+Quiz json
+    title Text
+    userId UserId
+    topic Text
+    publicAccess Bool
+    UniqueTitleUser title userId
+Question json
+    quizId QuizId
+    question Text
+Answer json
+    questionId QuestionId
+    content Text
+    correct Bool
+SharedQuiz json -- Stores which users can access a given quiz, apart from its owner (if it is set to specific-user sharing); if there is no entry, no access
+    quizId QuizId
+    userId UserId
+    hasAccess Bool
+
+-- Summaries
+Summary json
+    title Text
+    topic Text
+    userId UserId
+    content Text
+    publicAccess Bool
+    UniqueTitleTopicUser title topic userId
+
+SharedSummary json
+    summaryId SummaryId
+    userId UserId
+    hasAccess Bool
+
+--Comment json -- Adding "json" causes ToJSON and FromJSON instances to be derived.
+--    message Text
+--    userId UserId Maybe
+--    deriving Eq
+--    deriving Show
+
+ -- By default this file is used in Model.hs (which is imported by Foundation.hs)
