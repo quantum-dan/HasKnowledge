@@ -35,8 +35,19 @@ postNotesUserR = do
     provideJson $ object []
     provideRep $ return [shamlet|<p>Success!|]
 
-getTopicsR :: Key NotesUser -> Handler TypedContent
-getTopicsR userId = do
+getTopicsR :: Handler Html
+getTopicsR = do
+  auth <- requireAuth
+  mNotesUser <- runDB $ getBy $ UniqueNotesUser $ userIdent $ entityVal auth
+  case mNotesUser of
+    Just notesUser -> do
+      topics <- runDB $ selectList [NotesTopicUserId ==. entityKey notesUser] []
+      (topicForm, enctype) <- generateFormPost createNotesTopicForm
+      defaultLayout $(widgetFile "topics")
+    Nothing -> redirect HomeR
+
+getTopicsJsonR :: Key NotesUser -> Handler TypedContent
+getTopicsJsonR userId = do
   topics <- runDB $ selectList [NotesTopicUserId ==. userId] []
   selectRep $ do
     provideJson topics
@@ -47,42 +58,57 @@ getTopicsR userId = do
 getNotesR :: Key NotesTopic -> Handler TypedContent
 getNotesR topicId = do
   notes <- runDB $ selectList [NoteTopicId ==. topicId] []
+  mTopic <- runDB $ get topicId
   selectRep $ do
     provideJson notes
     provideRep $ do
       (noteForm, enctype) <- generateFormPost createNoteForm
       defaultLayout $(widgetFile "notes")
 
-postTopicsR :: Key NotesUser -> Handler TypedContent
-postTopicsR userId = do
+postTopicsR :: Handler Html
+postTopicsR = do
+  auth <- requireAuth
+  mNotesUser <- runDB $ getBy $ UniqueNotesUser $ userIdent $ entityVal auth
+  case mNotesUser of
+    Just notesUser -> do
+      ((result, _), _) <- runFormPost createNotesTopicForm
+      case result of
+        FormSuccess (NotesTopicF topic) -> do
+          _ <- runDB $ insert $ NotesTopic topic $ entityKey notesUser
+          redirect TopicsR
+        FormFailure err -> defaultLayout [whamlet|Error: #{show err}|]
+        _ -> defaultLayout [whamlet|Error|]
+    Nothing -> redirect HomeR
+
+
+postTopicsJsonR :: Key NotesUser -> Handler TypedContent
+postTopicsJsonR userId = do
   topicJson <- (parseJsonBody :: Handler (Result NotesTopic))
-  ((result, _), _) <- runFormPost createNotesTopicForm
   _ <- case topicJson of
     Success topic -> do
       _ <- runDB $ insert topic{notesTopicUserId = userId}
       return ()
-    Error _ -> case result of
-      FormSuccess (NotesTopicF topic) -> do
-        _ <- runDB $ insert $ NotesTopic topic userId
-        return ()
-      _ -> return ()
+    _ -> return ()
   selectRep $ do
     provideJson $ object []
-    provideRep $ return [shamlet|<p>Success!|]
 
-postNotesR :: Key NotesTopic -> Handler TypedContent
+postNotesR :: Key NotesTopic -> Handler Html
 postNotesR topicId = do
-  noteJson <- (parseJsonBody :: Handler (Result Note))
   ((result, _), _) <- runFormPost createNoteForm
+  case result of
+    FormSuccess (NoteF content) -> do
+      _ <- runDB $ insert $ Note topicId $ unTextarea content
+      redirect $ NotesR topicId
+    _ -> defaultLayout [whamlet|Error in form submission!|]
+
+postNotesJsonR :: Key NotesTopic -> Handler TypedContent
+postNotesJsonR topicId = do
+  noteJson <- (parseJsonBody :: Handler (Result Note))
   case noteJson of
     Success note -> do
       _ <- runDB $ insert note{noteTopicId = topicId}
       return ()
-    Error _ -> case result of
-      FormSuccess (NoteF content) -> do
-        _ <- runDB $ insert $ Note topicId (unTextarea content)
-        return ()
-      _ -> return ()
+    Error _ -> return ()
   selectRep $ do
     provideJson $ object []
     provideRep $ return [shamlet|<p>Success!|]

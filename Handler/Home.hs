@@ -20,7 +20,7 @@ data FileForm = FileForm
 -- inclined, or create a single monolithic file.
 getHomeR :: Handler Html
 getHomeR = do
-        mauth <- maybeAuth
+        mAuth <- maybeAuth
         (userform, enctype) <- generateFormPost usernameForm
         let loginUrl = "/auth/page/googleemail2/forward" :: Text
         defaultLayout $ do

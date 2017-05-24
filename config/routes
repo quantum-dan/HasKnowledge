@@ -19,5 +19,5 @@
 /summary/#SummaryId SummaryR GET
 
 /noteuser NotesUserR POST
-/topics/#NotesUserId TopicsR GET POST
+/topics TopicsR GET POST
 /notes/#NotesTopicId NotesR GET POST
