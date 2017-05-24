@@ -17,7 +17,7 @@ Quiz json
     userId UserId
     topic Text
     publicAccess Bool
-    UniqueTitleUser title userId
+    UniqueQuiz title userId
 Question json
     quizId QuizId
     question Text
@@ -37,7 +37,7 @@ Summary json
     userId UserId
     content Text
     publicAccess Bool
-    UniqueTitleTopicUser title topic userId
+    UniqueSummary title topic userId
 
 SharedSummary json
     summaryId SummaryId

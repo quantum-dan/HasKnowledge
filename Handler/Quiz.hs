@@ -2,6 +2,7 @@ module Handler.Quiz where
 
 import Import
 import Yesod.Form.Jquery
+import Data.Aeson.Types (Result(..))
 
 data FormQuiz = FormQuiz {
   fqTitle :: Text,
@@ -29,16 +30,22 @@ createQuestionForm = renderDivs $ FormQuestion
   <*> areq textField "Answer 4" Nothing
   <*> areq checkBoxField "Correct?" Nothing
 
-createQuestion :: FormResult FormQuestion -> Key Quiz -> HandlerT App IO ()
-createQuestion formResult qId =
+createAnswers :: [(Text, Bool)] -> Key Question -> Handler ()
+createAnswers ((answer, correct):answers) qId = do
+  _ <- runDB $ insert (Answer qId answer correct)
+  createAnswers answers qId
+createAnswers [] _ = return ()
+
+createQuestion :: Question -> [(Text, Bool)] -> Key Quiz -> Handler ()
+createQuestion question answers qId = do
+  questionId <- runDB $ insert $ question {questionQuizId = qId}
+  _ <- createAnswers answers questionId
+  return ()
+
+createQuestionF :: FormResult FormQuestion -> Key Quiz -> HandlerT App IO ()
+createQuestionF formResult qId =
   case formResult of
-    FormSuccess (FormQuestion question a1 c1 a2 c2 a3 c3 a4 c4) -> runDB $ do
-        questionId <- insert (Question qId question)
-        _ <- insert (Answer questionId a1 c1)
-        _ <- insert (Answer questionId a2 c2)
-        _ <- insert (Answer questionId a3 c3)
-        _ <- insert (Answer questionId a4 c4)
-        return ()
+    FormSuccess (FormQuestion question a1 c1 a2 c2 a3 c3 a4 c4) -> createQuestion (Question qId question) [(a1, c1), (a2, c2), (a3, c3), (a4, c4)] qId
     _ -> return ()
 
 createQuizForm :: Html -> MForm Handler (FormResult FormQuiz, Widget)
@@ -47,62 +54,102 @@ createQuizForm = renderDivs $ FormQuiz
   <*> areq textField "Topic" Nothing
   <*> areq checkBoxField "Public" Nothing
 
-createQuiz :: FormResult FormQuiz -> Key User -> HandlerT App IO ()
-createQuiz formResult userId =
+createQuizF :: FormResult FormQuiz -> Key User -> HandlerT App IO ()
+createQuizF formResult userId =
   case formResult of
-    FormSuccess (FormQuiz title topic public) -> do
-      _ <- runDB $ insert (Quiz title userId topic public)
-      return ()
+    FormSuccess (FormQuiz title topic public) -> createQuiz (Quiz title userId topic public) userId
     _ -> return ()
 
-getQuizzesR :: Handler Html
+createQuiz :: Quiz -> Key User -> Handler ()
+createQuiz quiz userId = do
+  _ <- runDB $ insert $ quiz {quizUserId = userId}
+  return ()
+
+getQuizzesR :: Handler TypedContent
 getQuizzesR = do
   mAuth <- maybeAuth
   (quizForm, enctype) <- generateFormPost createQuizForm
   case mAuth of
-    Nothing -> redirect HomeR
+    Nothing -> do
+      quizzes <- getPublicQuizzes
+      selectRep $ do
+        provideJson quizzes
+        provideRep $ defaultLayout $ do
+          setTitle "Quizzes"
+          $(widgetFile "quizlist")
     Just auth -> do
       quizzes <- getAvailableQuizzes $ entityKey auth
-      defaultLayout $ do
-        setTitle "Quizzes"
-        $(widgetFile "quizlist")
+      selectRep $ do
+        provideJson quizzes
+        provideRep $ defaultLayout $ do
+          setTitle "Quizzes"
+          $(widgetFile "quizlist")
 
 postMkQuizR :: Handler Html
 postMkQuizR = do
-  ((result, _), _) <- runFormPost createQuizForm
   mAuth <- maybeAuth
   case mAuth of
     Just auth -> do
-      createQuiz result (entityKey auth)
-      redirect QuizzesR
+      ((result, _), _) <- runFormPost createQuizForm
+      jsonQuiz <- parseJsonBody
+      case jsonQuiz of
+        Success quiz -> do
+          createQuiz quiz $ entityKey auth
+          redirect QuizzesR
+        Error _ -> do
+          createQuizF result (entityKey auth)
+          redirect QuizzesR
     Nothing -> redirect HomeR
 
-getQuizR :: Key Quiz -> Handler Html
+data QuizInfo = QuizInfo (Maybe Quiz) Bool
+
+instance ToJSON QuizInfo where
+  toJSON (QuizInfo q o) = object
+    [
+      "maybequiz" .= q
+      , "owner" .= o
+    ]
+
+getQuizR :: Key Quiz -> Handler TypedContent
 getQuizR qId = do
   (questionForm, enctype) <- generateFormPost createQuestionForm
   questions <- getQuestions qId
-  defaultLayout $ do
-    toWidget [julius|
-                    function correct(c) {
-                      alert(c);
-                    }
-                    |]
-    setTitle "Quiz"
-    $(widgetFile "quiz")
+  mAuth <- maybeAuth
+  quiz <- runDB $ get qId
+  let ownsQuiz = case (quiz >>= (\q -> mAuth >>= (\m -> return (entityKey m == quizUserId q)))) of
+        Nothing -> False
+        Just x -> x
+  let quizAccess = ownsQuiz ||
+        case quiz of
+          Nothing -> False
+          Just q -> quizPublicAccess q
+  selectRep $ do
+    provideJson $ case quizAccess of
+      True -> QuizInfo quiz ownsQuiz
+      False -> QuizInfo Nothing False
+    provideRep $ defaultLayout $ do
+      setTitle "Quiz"
+      $(widgetFile "quiz")
 
 postQuestionR :: Key Quiz -> Handler Html
 postQuestionR qId = do
-  ((result, _), _) <- runFormPost createQuestionForm
   mAuth <- maybeAuth
   case mAuth of
     Just auth -> do
       mQuiz <- runDB $ get qId
       case mQuiz of
         Just quiz ->
-          if (quizUserId quiz) == entityKey auth
+          if (quizUserId quiz) == entityKey auth -- Verify that the person sending the request owns the quiz
             then do
-              createQuestion result qId
-              redirect (QuizR qId)
+              ((result, _), _) <- runFormPost createQuestionForm
+              jsonQuestion <- parseJsonBody
+              case jsonQuestion of
+                Success (question, answers) -> do
+                  createQuestion question answers qId
+                  redirect (QuizR qId)
+                Error _ -> do
+                  createQuestionF result qId
+                  redirect (QuizR qId)
             else redirect (QuizR qId)
         Nothing -> redirect HomeR
     Nothing -> redirect HomeR
@@ -112,9 +159,12 @@ getAvailableQuizzes uId = runDB $ do
   shared <- selectList [SharedQuizUserId ==. uId] []
   let publicOrOwnFilter = [QuizPublicAccess ==. True] ||. [QuizUserId ==. uId]
   let sharedQuizIds = map (sharedQuizQuizId . entityVal) shared
-  let quizFilter = foldr (||.) publicOrOwnFilter $ map (\id -> [QuizId ==. id]) sharedQuizIds
+  let quizFilter = foldr (||.) publicOrOwnFilter $ map (\id -> [QuizId ==. id]) sharedQuizIds -- All quizzes which are either public, owned by the user, or shared with the user
   quizzes <- selectList quizFilter []
   return quizzes
+
+getPublicQuizzes :: Handler [Entity Quiz]
+getPublicQuizzes = runDB $ selectList [QuizPublicAccess ==. True] []
 
 getAnswers :: Key Question -> HandlerT App IO [Entity Answer]
 getAnswers qId = runDB $ do
@@ -122,6 +172,7 @@ getAnswers qId = runDB $ do
   return answers
 
 getAllAnswers :: [Entity Question] -> HandlerT App IO [(Entity Question, [Entity Answer])]
+-- Loop to recursively get answers, paird with the appropriate questions, for a given quiz
 getAllAnswers (q:questions) = do
   answers <- getAnswers $ entityKey q
   rest <- getAllAnswers questions

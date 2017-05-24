@@ -7,16 +7,14 @@
       ^{userform}
       <button>Submit
 
+<p>
+  <a href=@{QuizzesR}>Quizzes
+  <br>
+  <a href=@{SummariesR}>Summaries
+
 $maybe auth <- mauth
-       <p>UserId: #{userIdent (entityVal auth)} 
-                  $maybe displayName <- userName (entityVal auth)
-                         Display name: #{displayName}
-                  $nothing
-                         Display name not set.
-       <p>
-                  <a href=@{QuizzesR}>Quizzes
        <p>
                   <a href=@{AuthR LogoutR}>Logout
 $nothing
-        <p>
+       <p>
           <a href=#{loginUrl}>Login
