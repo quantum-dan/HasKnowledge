@@ -1,0 +1,8 @@
+<form method=POST action=@{TopicsR userId} enctype=#{enctype}>
+      ^{topicForm}
+      <button>Submit
+
+<ul>
+  $forall topic <- topics
+          <li>
+            <a href=@{NotesR $ entityKey topic}>#{notesTopicTitle $ entityVal topic}

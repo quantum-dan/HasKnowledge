@@ -183,7 +183,9 @@ instance YesodAuth App where
         x <- getBy $ UniqueUser $ credsIdent creds
         case x of
             Just (Entity uid _) -> return $ Authenticated uid
-            Nothing -> Authenticated <$> insert User
+            Nothing -> do
+              _ <- insert $ NotesUser $ credsIdent creds
+              Authenticated <$> insert User
                 { userIdent = credsIdent creds
                 , userPassword = Nothing
                 , userName = Nothing
