@@ -20,6 +20,30 @@ Currently, the correct-answer-showing is primitive but working.
 ### Summaries
 Summaries can be created via a form specifying name, topic, content and public or private.  The summaries can then be viewed by anyone who has access.  Summaries are handled in Summary.hs.
 
+### Notes
+Topics can be created via a form specifying name.  Notes can be created by a form under the topic.
+
+## JSON API
+Describing the format of JSON data for the API.
+
+### Notes and Notes Topics
+At /json/topics/<notesUserId> and /json/notes/<notesTopicId>, respectively.
+Note that, when sending JSON data, the user ID and topic ID can be anything; they will be corrected on the server-side as long as the URL is correct.
+
+Topics:
+{
+  "userId": Int, (irrelevant if POSTing)
+  "id": Int, (irrelevant if POSTing)
+  "title": String
+}
+
+Notes:
+{
+  "content": String,
+  "topicId": Int, (irrelevant if POSTing)
+  "id": Int (irrelevant if POSTing)
+}
+
 ## Next Steps
 ### Programming
 * Upgrade quiz answer-checking system (currently works, but very primitive)
