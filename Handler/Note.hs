@@ -81,16 +81,14 @@ postTopicsR = do
     Nothing -> redirect HomeR
 
 
-postTopicsJsonR :: Key NotesUser -> Handler TypedContent
+postTopicsJsonR :: Key NotesUser -> Handler Value
 postTopicsJsonR userId = do
   topicJson <- (parseJsonBody :: Handler (Result NotesTopic))
-  _ <- case topicJson of
+  case topicJson of
     Success topic -> do
       _ <- runDB $ insert topic{notesTopicUserId = userId}
-      return ()
-    _ -> return ()
-  selectRep $ do
-    provideJson $ object []
+      return $ object ["success" .= True]
+    Error error -> return $ object ["error" .= error]
 
 postNotesR :: Key NotesTopic -> Handler Html
 postNotesR topicId = do
@@ -101,14 +99,16 @@ postNotesR topicId = do
       redirect $ NotesR topicId
     _ -> defaultLayout [whamlet|Error in form submission!|]
 
-postNotesJsonR :: Key NotesTopic -> Handler TypedContent
+postNotesJsonR :: Key NotesTopic -> Handler Value
 postNotesJsonR topicId = do
   noteJson <- (parseJsonBody :: Handler (Result Note))
   case noteJson of
     Success note -> do
       _ <- runDB $ insert note{noteTopicId = topicId}
-      return ()
-    Error _ -> return ()
-  selectRep $ do
-    provideJson $ object []
-    provideRep $ return [shamlet|<p>Success!|]
+      return $ object ["success" .= True]
+    Error error -> return $ object ["error" .= error]
+
+getNotesJsonR :: Key NotesTopic -> Handler Value
+getNotesJsonR topicId = do
+  notes <- runDB $ selectList [NoteTopicId ==. topicId] []
+  returnJson notes

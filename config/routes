@@ -21,3 +21,6 @@
 /noteuser NotesUserR POST
 /topics TopicsR GET POST
 /notes/#NotesTopicId NotesR GET POST
+
+/json/topics/#NotesUserId TopicsJsonR GET POST
+/json/notes/#NotesTopicId NotesJsonR GET POST

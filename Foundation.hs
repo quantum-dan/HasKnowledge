@@ -120,6 +120,8 @@ instance Yesod App where
     isAuthorized (QuestionR _) _ = isAuthenticated
     isAuthorized SummariesR False = return Authorized
     isAuthorized (SummaryR _) _ = return Authorized
+    isAuthorized (TopicsJsonR _) _ = return Authorized
+    isAuthorized (NotesJsonR _) _ = return Authorized
     isAuthorized _ _ = isAuthenticated
 
 
