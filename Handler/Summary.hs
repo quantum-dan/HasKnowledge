@@ -36,8 +36,8 @@ postSummariesR = do
   case mAuth of
     Nothing -> redirect HomeR
     Just auth -> do
-      mSummary <- parseJsonBody
       ((result, _), _) <- runFormPost createSummaryForm
+      mSummary <- parseJsonBody
       case mSummary of
         Success summary -> do
           _ <- addSummary auth summary
