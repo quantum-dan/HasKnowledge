@@ -5,6 +5,12 @@ $maybe _ <- mAuth
           <form method=POST action=@{MkQuizR} enctype=#{enctype}>
                  ^{quizForm}
                  <button>Submit
+
+<ul style="text-align:left">Topics
+    $forall quizTopic <- (nub $ map (quizTopic . entityVal) quizzes)
+            <li>
+              <a href=@{FilteredQuizzesR quizTopic}>#{quizTopic}
+
 <ul style="text-align:left">List of Quizzes
   $forall quiz <- quizzes
           <li>

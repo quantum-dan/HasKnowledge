@@ -9,12 +9,14 @@
 /username UsernameR POST GET
 
 /quizzes QuizzesR GET
+/quizzes/#Text FilteredQuizzesR GET
 /quiz/#QuizId QuizR GET
 /mkquiz MkQuizR POST
 
 /question/#QuizId QuestionR POST
 
 /summaries SummariesR GET POST
+/summaries/#Text FilteredSummariesR GET
 
 /summary/#SummaryId SummaryR GET
 

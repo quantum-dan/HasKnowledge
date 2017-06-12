@@ -2,6 +2,7 @@ module Handler.Summary where
 
 import Import
 import Data.Aeson.Types (Result (..))
+import Data.List (nub)
 
 data FormSummary = FormSummary {
   fsTitle :: Text,
@@ -61,6 +62,20 @@ getSummaryR sId = do
         setTitle $ toHtml $ summaryTitle summary
         $(widgetFile "summary")
 
+getFilteredSummariesR :: Text -> Handler TypedContent
+getFilteredSummariesR topic = do
+  mAuth <- maybeAuth
+  summaries <- case mAuth of
+    Just auth -> filterByTopic (entityKey auth) topic
+    Nothing -> filterByTopicNoUser topic
+  selectRep $ do
+    provideJson summaries
+    provideRep $ do
+      (summaryForm, enctype) <- generateFormPost createSummaryForm
+      defaultLayout $ do
+        setTitle $ toHtml $ "Summaries with Topic: " ++ topic
+        $(widgetFile "summarylist")
+
 getSummary :: Key Summary -> Maybe (Entity User) -> HandlerT App IO (Maybe Summary)
   -- Also verifies that the user has access to the summary in question
 getSummary sId mAuth = do
@@ -86,3 +101,9 @@ getSummaries uId = runDB $ selectList ([SummaryUserId ==. uId] ||. [SummaryPubli
 
 getPublicSummaries :: HandlerT App IO [Entity Summary]
 getPublicSummaries = runDB $ selectList [SummaryPublicAccess ==. True] []
+
+filterByTopic :: Key User -> Text -> Handler [Entity Summary]
+filterByTopic userId topic = runDB $ selectList (([SummaryPublicAccess ==. True] ||. [SummaryUserId ==. userId]) ++ [SummaryTopic ==. topic]) []
+
+filterByTopicNoUser :: Text -> Handler [Entity Summary]
+filterByTopicNoUser topic = runDB $ selectList [SummaryPublicAccess ==. True, SummaryTopic ==. topic] []

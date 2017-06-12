@@ -114,11 +114,13 @@ instance Yesod App where
     isAuthorized (StaticR _) _ = return Authorized
     isAuthorized UsernameR _ = isAuthenticated
     isAuthorized QuizzesR _ = return Authorized
+    isAuthorized (FilteredQuizzesR _) _ = return Authorized
     isAuthorized (QuizR _) True = isAuthenticated
     isAuthorized (QuizR _) False = return Authorized
     isAuthorized MkQuizR _ = isAuthenticated
     isAuthorized (QuestionR _) _ = isAuthenticated
     isAuthorized SummariesR False = return Authorized
+    isAuthorized (FilteredSummariesR _) _ = return Authorized
     isAuthorized (SummaryR _) _ = return Authorized
     isAuthorized (TopicsJsonR _) _ = return Authorized
     isAuthorized (NotesJsonR _) _ = return Authorized

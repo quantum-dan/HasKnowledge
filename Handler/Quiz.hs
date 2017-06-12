@@ -3,6 +3,7 @@ module Handler.Quiz where
 import Import
 import Yesod.Form.Jquery
 import Data.Aeson.Types (Result(..))
+import Data.List (nub)
 
 data FormQuiz = FormQuiz {
   fqTitle :: Text,
@@ -154,6 +155,20 @@ postQuestionR qId = do
         Nothing -> redirect HomeR
     Nothing -> redirect HomeR
 
+getFilteredQuizzesR :: Text -> Handler TypedContent
+getFilteredQuizzesR topic = do
+  mAuth <- maybeAuth
+  quizzes <- case mAuth of
+    Just auth -> filterByTopic (entityKey auth) topic
+    Nothing -> filterByTopicNoUser topic
+  selectRep $ do
+    provideJson quizzes
+    provideRep $ do
+      (quizForm, enctype) <- generateFormPost createQuizForm
+      defaultLayout $ do
+        setTitle $ toHtml $ "Quizzes with Topic: " ++ topic
+        $(widgetFile "quizlist")
+
 getAvailableQuizzes :: Key User -> HandlerT App IO [Entity Quiz]
 getAvailableQuizzes uId = runDB $ do
   shared <- selectList [SharedQuizUserId ==. uId] []
@@ -184,3 +199,9 @@ getQuestions qId = do
   questions <- runDB $ selectList [QuestionQuizId ==. qId] []
   allAnswers <- getAllAnswers questions
   return allAnswers
+
+filterByTopic :: Key User -> Text -> Handler [Entity Quiz]
+filterByTopic userId topic = runDB $ selectList (([QuizPublicAccess ==. True] ||. [QuizUserId ==. userId]) ++ [QuizTopic ==. topic]) []
+
+filterByTopicNoUser :: Text -> Handler [Entity Quiz]
+filterByTopicNoUser topic = runDB $ selectList [QuizPublicAccess ==. True, QuizTopic ==. topic] []
