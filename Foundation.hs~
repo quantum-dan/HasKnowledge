@@ -95,6 +95,7 @@ instance Yesod App where
               MenuItem "Home" HomeR
               , MenuItem "Quizzes" QuizzesR
               , MenuItem "Summaries" SummariesR
+              , MenuItem "Notes" TopicsR
                         ]
 
         pc <- widgetToPageContent $ do
