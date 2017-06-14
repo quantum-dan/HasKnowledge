@@ -44,21 +44,6 @@ Notes:
   "id": Int (irrelevant if POSTing)
 }
 
-## Next Steps
-### Programming
-* Upgrade quiz answer-checking system (currently works, but very primitive)
-* Add basic styling so it doesn't look terrible
-* Implement JSON API
-* Build more sophisticated, asynchronous front-end
-* Add styling to the new front-end
-* Implement specific-user sharing
-
-### Technology
-* Get it working in a FreeBSD jail (on a local VM)
-* Switch from local MySQL server to AWS RDS
-* Deploy (by transferring the jail) to AWS EC2 (FreeBSD)
-* Acquire domain name
-
 ## Key Libraries
 * Yesod: web framework
 * Persistent: database framework
@@ -117,7 +102,3 @@ Originally part of Yesod, now an independent library, Persistent uses the same p
 
 ### Warp
 I'm using the default Yesod server Warp, which apparently has the best performance of all the possible back-ends.  The rationale there is clear, and as Yesod acts the same way regardless of the back-end, there are no possible ease of use, maintainability, etc gains with other back-ends.
-
-### PureScript
-(Not currently in use, but will be when the time comes for a more sophisticated front-end)
-All the power of Haskell, on the front-end.  That is a brief description of PureScript.  The language is very, very similar to Haskell and brings to bear many of the same capabilities.  I am particularly interested in the type safety, having been in the past very frustrated about constant runtime errors with React.  PureScript is also well-equipped to integrate with Haskell back-ends and there is a library for this purpose, purescript-bridge.
