@@ -1,9 +1,13 @@
 module Handler.Note where
+{- Notes is available but not intended to be used by the web front-end,
+where Summary serves a similar purpose.  Note is custom-built to
+Yonathan's specifications for his app -}
 
 import Import
 import Data.Aeson.Types (Result(..))
 
 data NotesUserF = NotesUserF { nufUsername :: Text }
+-- Currently, Notes has its own users until the notes front-end implements logins
 createNotesUserForm :: Html -> MForm Handler (FormResult NotesUserF, Widget)
 createNotesUserForm = renderDivs $ NotesUserF
   <$> areq textField "Username" Nothing
@@ -38,6 +42,7 @@ postNotesUserR = do
 getTopicsR :: Handler Html
 getTopicsR = do
   auth <- requireAuth
+  -- If user is on the website and logged in, NotesUser is tied to their actual account
   mNotesUser <- runDB $ getBy $ UniqueNotesUser $ userIdent $ entityVal auth
   case mNotesUser of
     Just notesUser -> do

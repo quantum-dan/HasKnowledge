@@ -22,7 +22,7 @@ getHomeR :: Handler Html
 getHomeR = do
         mAuth <- maybeAuth
         (userform, enctype) <- generateFormPost usernameForm
-        let loginUrl = "/auth/page/googleemail2/forward" :: Text
+        let loginUrl = "/auth/page/googleemail2/forward" :: Text -- Google+ login link, instead of a dedicated login page
         defaultLayout $ do
           aDomId <- newIdent
           setTitle "HasKnowledge"

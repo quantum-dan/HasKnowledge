@@ -123,27 +123,7 @@ instance Yesod App where
     isAuthorized (SummaryR _) _ = return Authorized
     isAuthorized (TopicsJsonR _) _ = return Authorized
     isAuthorized (NotesJsonR _) _ = return Authorized
-    isAuthorized _ _ = isAuthenticated
-
-
-    -- This function creates static content files in the static folder
-    -- and names them based on a hash of their content. This allows
-    -- expiration dates to be set far in the future without worry of
-    -- users receiving stale content.
-    addStaticContent ext mime content = do
-        master <- getYesod
-        let staticDir = appStaticDir $ appSettings master
-        addStaticContentExternal
-            minifym
-            genFileName
-            staticDir
-            (StaticR . flip StaticRoute [])
-            ext
-            mime
-            content
-      where
-        -- Generate a unique filename based on the content itself
-        genFileName lbs = "autogen-" ++ base64md5 lbs
+    isAuthorized _ _ = isAuthenticated -- Default to requiring login
 
     -- What messages should be logged. The following includes all messages when
     -- in development, and warnings and errors in production.

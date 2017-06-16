@@ -12,11 +12,13 @@
 /quizzes/#Text FilteredQuizzesR GET
 /quiz/#QuizId QuizR GET
 /mkquiz MkQuizR POST
+/deletequiz/#QuizId DeleteQuizR GET
 
 /question/#QuizId QuestionR POST
 
 /summaries SummariesR GET POST
 /summaries/#Text FilteredSummariesR GET
+/deletesummary/#SummaryId DeleteSummaryR GET
 
 /summary/#SummaryId SummaryR GET
 

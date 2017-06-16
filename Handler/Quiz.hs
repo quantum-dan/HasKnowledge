@@ -12,6 +12,7 @@ data FormQuiz = FormQuiz {
 }
 
 data FormQuestion = FormQuestion {
+  {- Hardcoded answers is ugly, but I don't see a better way to do it with plain HTML -}
   fqQuestion :: Text,
   fqAnswer1 :: Text, fqAnswer1C :: Bool,
   fqAnswer2 :: Text, fqAnswer2C :: Bool,
@@ -117,6 +118,7 @@ getQuizR qId = do
   questions <- getQuestions qId
   mAuth <- maybeAuth
   quiz <- runDB $ get qId
+  -- Get the data out of the various Monads involved and determine if the user is the owner of the quiz
   let ownsQuiz = case (quiz >>= (\q -> mAuth >>= (\m -> return (entityKey m == quizUserId q)))) of
         Nothing -> False
         Just x -> x
@@ -168,6 +170,17 @@ getFilteredQuizzesR topic = do
       defaultLayout $ do
         setTitle $ toHtml $ "Quizzes with Topic: " ++ topic
         $(widgetFile "quizlist")
+
+getDeleteQuizR :: Key Quiz -> Handler TypedContent
+getDeleteQuizR quizId = do
+  auth <- requireAuth
+  mQuiz <- runDB $ get quizId
+  _ <- case mQuiz of
+    Nothing -> return ()
+    Just quiz -> if quizUserId quiz == entityKey auth
+      then runDB $ delete quizId
+      else return ()
+  redirect QuizzesR
 
 getAvailableQuizzes :: Key User -> HandlerT App IO [Entity Quiz]
 getAvailableQuizzes uId = runDB $ do

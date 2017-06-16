@@ -26,6 +26,7 @@ library
                      Handler.Quiz
                      Handler.Summary
                      Handler.Note
+                     Handler.Generic
 
     if flag(dev) || flag(library-only)
         cpp-options:   -DDEVELOPMENT

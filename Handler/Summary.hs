@@ -76,6 +76,18 @@ getFilteredSummariesR topic = do
         setTitle $ toHtml $ "Summaries with Topic: " ++ topic
         $(widgetFile "summarylist")
 
+getDeleteSummaryR :: Key Summary -> Handler TypedContent
+getDeleteSummaryR summaryId = do
+  auth <- requireAuth
+  mSummary <- runDB $ get summaryId
+  case mSummary of
+    Nothing -> redirect SummariesR
+    Just summary -> if entityKey auth == summaryUserId summary
+      then do
+        runDB $ delete summaryId
+        redirect SummariesR
+      else redirect SummariesR
+
 getSummary :: Key Summary -> Maybe (Entity User) -> HandlerT App IO (Maybe Summary)
   -- Also verifies that the user has access to the summary in question
 getSummary sId mAuth = do
