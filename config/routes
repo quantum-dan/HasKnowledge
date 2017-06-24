@@ -5,6 +5,7 @@
 /robots.txt RobotsR GET
 
 / HomeR GET
+/test HomeTestR GET
 
 /username UsernameR POST GET
 

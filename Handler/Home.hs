@@ -28,3 +28,9 @@ getHomeR = do
           setTitle "HasKnowledge"
           $(widgetFile "homepage")
 
+getHomeTestR :: Handler Html -- For JavaScript testing
+getHomeTestR = do
+  defaultLayout $ do
+    setTitle "HasKnowledge"
+    $(widgetFile "hptest")
+
