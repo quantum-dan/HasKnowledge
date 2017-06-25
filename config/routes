@@ -29,3 +29,5 @@
 
 /json/topics/#NotesUserId TopicsJsonR GET POST
 /json/notes/#NotesTopicId NotesJsonR GET POST
+
+/json/mkquiz MkQuizJsonR POST

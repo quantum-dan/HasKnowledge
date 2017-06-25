@@ -103,6 +103,16 @@ postMkQuizR = do
           redirect QuizzesR
     Nothing -> redirect HomeR
 
+postMkQuizJsonR :: Handler Value
+postMkQuizJsonR = do
+  auth <- requireAuth
+  jsonQuiz <- parseJsonBody
+  case jsonQuiz of
+    Success quiz -> do
+      createQuiz quiz $ entityKey auth
+      redirect QuizzesR
+    Error error -> return $ object ["error" .= error]
+
 data QuizInfo = QuizInfo (Maybe Quiz) Bool
 
 instance ToJSON QuizInfo where
