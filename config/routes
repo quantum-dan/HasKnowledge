@@ -5,11 +5,29 @@
 /robots.txt RobotsR GET
 
 / HomeR GET
+/test HomeTestR GET
 
 /username UsernameR POST GET
 
 /quizzes QuizzesR GET
+/quizzes/#Text FilteredQuizzesR GET
 /quiz/#QuizId QuizR GET
 /mkquiz MkQuizR POST
+/deletequiz/#QuizId DeleteQuizR GET
 
 /question/#QuizId QuestionR POST
+
+/summaries SummariesR GET POST
+/summaries/#Text FilteredSummariesR GET
+/deletesummary/#SummaryId DeleteSummaryR GET
+
+/summary/#SummaryId SummaryR GET
+
+/noteuser NotesUserR POST
+/topics TopicsR GET POST
+/notes/#NotesTopicId NotesR GET POST
+
+/json/topics/#NotesUserId TopicsJsonR GET POST
+/json/notes/#NotesTopicId NotesJsonR GET POST
+
+/json/mkquiz MkQuizJsonR POST

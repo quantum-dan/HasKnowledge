@@ -1,0 +1,11 @@
+$maybe topic <- mTopic
+       <h3>
+          #{notesTopicTitle topic}
+
+<form method=POST action=@{NotesR topicId} enctype=#{enctype}>
+      ^{noteForm}
+      <button>Submit
+
+<div>
+  $forall note <- notes
+          <p>#{noteContent $ entityVal note}

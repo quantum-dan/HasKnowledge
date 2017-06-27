@@ -17,7 +17,7 @@ Quiz json
     userId UserId
     topic Text
     publicAccess Bool
-    UniqueTitleUser title userId
+    UniqueQuiz title userId
 Question json
     quizId QuizId
     question Text
@@ -37,17 +37,23 @@ Summary json
     userId UserId
     content Text
     publicAccess Bool
-    UniqueTitleTopicUser title topic userId
+    UniqueSummary title topic userId
 
 SharedSummary json
     summaryId SummaryId
     userId UserId
     hasAccess Bool
 
---Comment json -- Adding "json" causes ToJSON and FromJSON instances to be derived.
---    message Text
---    userId UserId Maybe
---    deriving Eq
---    deriving Show
+-- Notes
+NotesUser json
+          ident Text
+          UniqueNotesUser ident
 
- -- By default this file is used in Model.hs (which is imported by Foundation.hs)
+NotesTopic json
+           title Text
+           userId NotesUserId
+           UniqueNotesTopic title userId
+
+Note json
+     topicId NotesTopicId
+     content Text

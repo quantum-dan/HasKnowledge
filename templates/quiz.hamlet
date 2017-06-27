@@ -1,9 +1,11 @@
-<form method=POST action=@{QuestionR qId} enctype=#{enctype}>
-      ^{questionForm}
-      <button>Submit
-<br>
-<ul style="text-align: left">
-  $forall (question, answers) <- questions
+$if ownsQuiz
+       <form method=POST action=@{QuestionR qId} enctype=#{enctype}>
+             ^{questionForm}
+             <button>Submit
+       <br>
+$if quizAccess
+    <ul style="text-align: left">
+        $forall (question, answers) <- questions
           <li>
               <p>#{questionQuestion $ entityVal question}
               <ul>

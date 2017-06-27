@@ -2,9 +2,22 @@
       text-align: center;
 }
 
+textarea {
+         width: 60%;
+         height: 300px;
+}
+
 .masthead,
 .navbar {
     background-color: rgb(27, 28, 29);
+    text-align: center;
+}
+
+.menuitem {
+          background-color: #AAA;
+          padding-left: 5em;
+          padding-right: 5em;
+          color: #000;
 }
 
 .navbar-default .navbar-nav > .active > a {

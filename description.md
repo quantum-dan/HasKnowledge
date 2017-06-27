@@ -15,6 +15,34 @@ Currently the only modifiable feature is display name, which is optional.  Passw
 
 ### Quizzes
 Quizzes can be created via a form specifying name, topic and public or private.  The quizzes can then be viewed by anyone who has access.  Quizzes are handled in Quiz.hs.
+Currently, the correct-answer-showing is primitive but working.
+
+### Summaries
+Summaries can be created via a form specifying name, topic, content and public or private.  The summaries can then be viewed by anyone who has access.  Summaries are handled in Summary.hs.
+
+### Notes
+Topics can be created via a form specifying name.  Notes can be created by a form under the topic.
+
+## JSON API
+Describing the format of JSON data for the API.
+
+### Notes and Notes Topics
+At /json/topics/<notesUserId> and /json/notes/<notesTopicId>, respectively.
+Note that, when sending JSON data, the user ID and topic ID can be anything; they will be corrected on the server-side as long as the URL is correct.
+
+Topics:
+{
+  "userId": Int, (irrelevant if POSTing)
+  "id": Int, (irrelevant if POSTing)
+  "title": String
+}
+
+Notes:
+{
+  "content": String,
+  "topicId": Int, (irrelevant if POSTing)
+  "id": Int (irrelevant if POSTing)
+}
 
 ## Key Libraries
 * Yesod: web framework
@@ -74,7 +102,3 @@ Originally part of Yesod, now an independent library, Persistent uses the same p
 
 ### Warp
 I'm using the default Yesod server Warp, which apparently has the best performance of all the possible back-ends.  The rationale there is clear, and as Yesod acts the same way regardless of the back-end, there are no possible ease of use, maintainability, etc gains with other back-ends.
-
-### PureScript
-(Not currently in use, but will be when the time comes for a more sophisticated front-end)
-All the power of Haskell, on the front-end.  That is a brief description of PureScript.  The language is very, very similar to Haskell and brings to bear many of the same capabilities.  I am particularly interested in the type safety, having been in the past very frustrated about constant runtime errors with React.  PureScript is also well-equipped to integrate with Haskell back-ends and there is a library for this purpose, purescript-bridge.

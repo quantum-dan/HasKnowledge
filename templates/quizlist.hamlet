@@ -1,12 +1,17 @@
 <h3>Quizzes
-<div>
-  <h4>Create a Quiz
-  <form method=POST action=@{MkQuizR} enctype=#{enctype}>
-        ^{quizForm}
-        <button>Submit
+$maybe _ <- mAuth
+       <div>
+          <h4>Create a Quiz
+          <form method=POST action=@{MkQuizR} enctype=#{enctype}>
+                 ^{quizForm}
+                 <button>Submit
+
+<ul style="text-align:left">Topics
+    $forall quizTopic <- (nub $ map (quizTopic . entityVal) quizzes)
+            <li>
+              <a href=@{FilteredQuizzesR quizTopic}>#{quizTopic}
+
 <ul style="text-align:left">List of Quizzes
   $forall quiz <- quizzes
           <li>
             <a href=@{QuizR (entityKey quiz)}>#{quizTitle (entityVal quiz)}
-
-<a href=@{HomeR}>Home
