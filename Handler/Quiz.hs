@@ -3,6 +3,7 @@ module Handler.Quiz where
 import Import
 import Yesod.Form.Jquery
 import Data.Aeson.Types (Result(..))
+import Data.List (nub)
 
 data FormQuiz = FormQuiz {
   fqTitle :: Text,
@@ -11,6 +12,7 @@ data FormQuiz = FormQuiz {
 }
 
 data FormQuestion = FormQuestion {
+  {- Hardcoded answers is ugly, but I don't see a better way to do it with plain HTML -}
   fqQuestion :: Text,
   fqAnswer1 :: Text, fqAnswer1C :: Bool,
   fqAnswer2 :: Text, fqAnswer2C :: Bool,
@@ -101,6 +103,16 @@ postMkQuizR = do
           redirect QuizzesR
     Nothing -> redirect HomeR
 
+postMkQuizJsonR :: Handler Value
+postMkQuizJsonR = do
+  auth <- requireAuth
+  jsonQuiz <- parseJsonBody
+  case jsonQuiz of
+    Success quiz -> do
+      createQuiz quiz $ entityKey auth
+      redirect QuizzesR
+    Error error -> return $ object ["error" .= error]
+
 data QuizInfo = QuizInfo (Maybe Quiz) Bool
 
 instance ToJSON QuizInfo where
@@ -116,6 +128,7 @@ getQuizR qId = do
   questions <- getQuestions qId
   mAuth <- maybeAuth
   quiz <- runDB $ get qId
+  -- Get the data out of the various Monads involved and determine if the user is the owner of the quiz
   let ownsQuiz = case (quiz >>= (\q -> mAuth >>= (\m -> return (entityKey m == quizUserId q)))) of
         Nothing -> False
         Just x -> x
@@ -154,6 +167,31 @@ postQuestionR qId = do
         Nothing -> redirect HomeR
     Nothing -> redirect HomeR
 
+getFilteredQuizzesR :: Text -> Handler TypedContent
+getFilteredQuizzesR topic = do
+  mAuth <- maybeAuth
+  quizzes <- case mAuth of
+    Just auth -> filterByTopic (entityKey auth) topic
+    Nothing -> filterByTopicNoUser topic
+  selectRep $ do
+    provideJson quizzes
+    provideRep $ do
+      (quizForm, enctype) <- generateFormPost createQuizForm
+      defaultLayout $ do
+        setTitle $ toHtml $ "Quizzes with Topic: " ++ topic
+        $(widgetFile "quizlist")
+
+getDeleteQuizR :: Key Quiz -> Handler TypedContent
+getDeleteQuizR quizId = do
+  auth <- requireAuth
+  mQuiz <- runDB $ get quizId
+  _ <- case mQuiz of
+    Nothing -> return ()
+    Just quiz -> if quizUserId quiz == entityKey auth
+      then runDB $ delete quizId
+      else return ()
+  redirect QuizzesR
+
 getAvailableQuizzes :: Key User -> HandlerT App IO [Entity Quiz]
 getAvailableQuizzes uId = runDB $ do
   shared <- selectList [SharedQuizUserId ==. uId] []
@@ -184,3 +222,9 @@ getQuestions qId = do
   questions <- runDB $ selectList [QuestionQuizId ==. qId] []
   allAnswers <- getAllAnswers questions
   return allAnswers
+
+filterByTopic :: Key User -> Text -> Handler [Entity Quiz]
+filterByTopic userId topic = runDB $ selectList (([QuizPublicAccess ==. True] ||. [QuizUserId ==. userId]) ++ [QuizTopic ==. topic]) []
+
+filterByTopicNoUser :: Text -> Handler [Entity Quiz]
+filterByTopicNoUser topic = runDB $ selectList [QuizPublicAccess ==. True, QuizTopic ==. topic] []

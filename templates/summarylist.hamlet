@@ -3,6 +3,11 @@ $maybe _ <- mAuth
              ^{summaryForm}
              <button>Submit
 
+<ul style="text-align: left">Topics
+    $forall topic <- (nub $ map (summaryTopic . entityVal) summaries)
+            <li>
+              <a href=@{FilteredSummariesR topic}>#{topic}
+
 <div>
   $forall summary <- summaries
           <div>
