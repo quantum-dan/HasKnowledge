@@ -31,7 +31,7 @@ function createQuiz(titleId, topicId, publicId, listId) {
     var xhr = new XMLHttpRequest();
     xhr.open("POST", "/mkquiz", true);
     xhr.onreadystatechange = updateQuizList(function(quizzes) {quizzesToList(quizzes, listId);});
-    xhr.send(data);
+    xhr.send(JSON.stringify(data));
 }
 
 function setup() {
