@@ -25,7 +25,7 @@ ip-from-header: "_env:IP_FROM_HEADER:false"
 
 database:
   user:     "_env:MYSQL_USER:hasknowledge"
-  password: "_env:MYSQL_PASSWORD:hkserver-database-password"
+  password: "_env:MYSQL_PASSWORD:setmebeforeyoucompile"
   host:     "_env:MYSQL_HOST:hasknowledge-dev.c1h16vm3tmxa.us-west-2.rds.amazonaws.com"
   port:     "_env:MYSQL_PORT:5432"
   # See config/test-settings.yml for an override during tests
