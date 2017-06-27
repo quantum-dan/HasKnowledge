@@ -34,8 +34,8 @@ function createQuiz(titleId, topicId, publicId, listId) {
     xhr.send(JSON.stringify(data));
 }
 
-function setup() {
-    html = "<div><input id='title' type='text' placeholder='title' /><input id='topic' type='text' placeholder='topic' /><input type='checkbox' id='public' /><input type='button' onclick=createQuiz('title','topic','public','quizzes') /></div><ul id='quizzes'></ul>";
+function quizzesSetup() {
+    html = "<div><input id='title' type='text' placeholder='title' /><input id='topic' type='text' placeholder='topic' /><input type='checkbox' id='public' /><input type='button' onclick=createQuiz('title','topic','public','quizzes') /></div><ul id='quizzes' style='text-align:left;'></ul>";
     document.getElementById("main").innerHTML = html;
     updateQuizList(function(quizzes) {quizzesToList(quizzes, "quizzes");});
 }

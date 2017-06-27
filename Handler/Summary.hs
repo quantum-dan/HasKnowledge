@@ -33,22 +33,19 @@ getSummariesR = do
 
 postSummariesR :: Handler TypedContent
 postSummariesR = do
-  mAuth <- maybeAuth
-  case mAuth of
-    Nothing -> redirect HomeR
-    Just auth -> do
-      ((result, _), _) <- runFormPost createSummaryForm
-      mSummary <- parseJsonBody
-      case mSummary of
-        Success summary -> do
-          _ <- addSummary auth summary
+  auth <- requireAuth
+  ((result, _), _) <- runFormPost createSummaryForm
+  mSummary <- parseJsonBody
+  case mSummary of
+    Success summary -> do
+      _ <- addSummary auth summary
+      redirect SummariesR
+    Error _ ->
+      case result of
+        FormSuccess fs -> do
+          _ <- addSummaryForm auth fs
           redirect SummariesR
-        Error _ ->
-          case result of
-            FormSuccess fs -> do
-              _ <- addSummaryForm auth fs
-              redirect SummariesR
-            _ -> redirect SummariesR
+        _ -> redirect SummariesR
 
 getSummaryR :: Key Summary -> Handler TypedContent
 getSummaryR sId = do
@@ -61,6 +58,18 @@ getSummaryR sId = do
       provideRep $ defaultLayout $ do
         setTitle $ toHtml $ summaryTitle summary
         $(widgetFile "summary")
+
+deleteSummaryR :: Key Summary -> Handler TypedContent
+deleteSummaryR summaryId = do
+  auth <- requireAuth
+  mSummary <- runDB $ get summaryId
+  case mSummary of
+    Nothing -> redirect SummariesR
+    Just summary -> if summaryUserId summary == entityKey auth
+      then (runDB $ delete summaryId) >> redirect SummariesR
+      else selectRep $ do
+        provideJson $ object ["error" .= ("You do not own this summary" :: Text)]
+        provideRep $ return [shamlet|<p>You do not own this summary.|]
 
 getFilteredSummariesR :: Text -> Handler TypedContent
 getFilteredSummariesR topic = do
@@ -75,18 +84,6 @@ getFilteredSummariesR topic = do
       defaultLayout $ do
         setTitle $ toHtml $ "Summaries with Topic: " ++ topic
         $(widgetFile "summarylist")
-
-getDeleteSummaryR :: Key Summary -> Handler TypedContent
-getDeleteSummaryR summaryId = do
-  auth <- requireAuth
-  mSummary <- runDB $ get summaryId
-  case mSummary of
-    Nothing -> redirect SummariesR
-    Just summary -> if entityKey auth == summaryUserId summary
-      then do
-        runDB $ delete summaryId
-        redirect SummariesR
-      else redirect SummariesR
 
 getSummary :: Key Summary -> Maybe (Entity User) -> HandlerT App IO (Maybe Summary)
   -- Also verifies that the user has access to the summary in question
