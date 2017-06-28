@@ -39,3 +39,12 @@ function quizzesSetup() {
     document.getElementById("main").innerHTML = html;
     updateQuizList(function(quizzes) {quizzesToList(quizzes, "quizzes");});
 }
+
+var total = 0;
+var correct = 0;
+
+function quizSetup() {
+    total = 0;
+    correct = 0;
+    html = ""
+}

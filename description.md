@@ -44,6 +44,22 @@ Notes:
   "id": Int (irrelevant if POSTing)
 }
 
+### Quizzes
+Quizzes are at /quizzes.  Particular quizzes at /quiz/<QuizId>.  POST questions to /quiz/<QuizId>.
+
+Quizzes:
+{
+  userId: Int, (irrelevant if POST)
+  id: Int, (irrelevant if POST),
+  topic: String,
+  title: String,
+  publicAccess: Bool
+}
+
+Quiz:
+
+Question:
+
 ## Key Libraries
 * Yesod: web framework
 * Persistent: database framework

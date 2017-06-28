@@ -91,12 +91,21 @@ postQuizzesR = do
       createQuizF result (entityKey auth)
       redirect QuizzesR
 
-data QuizInfo = QuizInfo (Maybe Quiz) Bool
+data QuizQuestion = QuizQuestion Text [Answer]
+instance ToJSON QuizQuestion where
+  toJSON (QuizQuestion question answers) = object
+    [
+      "question" .= question
+      , "answers" .= answers
+    ]
+
+data QuizInfo = QuizInfo (Maybe Quiz) [QuizQuestion] Bool
 
 instance ToJSON QuizInfo where
-  toJSON (QuizInfo q o) = object
+  toJSON (QuizInfo q qs o) = object
     [
       "maybequiz" .= q
+      , "questions" .= qs
       , "owner" .= o
     ]
 
@@ -104,6 +113,7 @@ getQuizR :: Key Quiz -> Handler TypedContent
 getQuizR qId = do
   (questionForm, enctype) <- generateFormPost createQuestionForm
   questions <- getQuestions qId
+  let jsonQuestions = map (\(question, answers) -> QuizQuestion (questionQuestion $ entityVal question) (map entityVal answers)) questions
   mAuth <- maybeAuth
   quiz <- runDB $ get qId
   -- Get the data out of the various Monads involved and determine if the user is the owner of the quiz
@@ -116,8 +126,8 @@ getQuizR qId = do
           Just q -> quizPublicAccess q
   selectRep $ do
     provideJson $ case quizAccess of
-      True -> QuizInfo quiz ownsQuiz
-      False -> QuizInfo Nothing False
+      True -> QuizInfo quiz jsonQuestions ownsQuiz
+      False -> QuizInfo Nothing [] False
     provideRep $ defaultLayout $ do
       setTitle "Quiz"
       $(widgetFile "quiz")
