@@ -47,7 +47,7 @@ Notes:
 ### Quizzes
 Quizzes are at /quizzes.  Particular quizzes at /quiz/<QuizId>.  POST questions to /quiz/<QuizId>.
 
-Quizzes:
+Quiz: (list of Quiz for quizzes)
 {
   userId: Int, (irrelevant if POST)
   id: Int, (irrelevant if POST),
@@ -56,9 +56,37 @@ Quizzes:
   publicAccess: Bool
 }
 
-Quiz:
+Answer:
+{
+  correct: Bool,
+  content: String,
+  questionId: Int (irrelevant if POST)
+}
 
 Question:
+{
+  question: String,
+  answers: [Answer]
+}
+
+Quiz and Questions: (no POST request will use this--create quizzes with the one above, and POST individual questions and answers to a quiz)
+{
+  maybequiz: Quiz (possibly null),
+  owner: Bool,
+  questions: [Question]
+}
+
+### Summaries
+Summaries are at /summaries.  Particular summaries are at /summary/<SummaryId>.
+
+Summary:
+{
+  topic: String,
+  content: String,
+  userId: Int, (irrelevant if POST)
+  publicAccess: Bool,
+  title: String
+}
 
 ## Key Libraries
 * Yesod: web framework
