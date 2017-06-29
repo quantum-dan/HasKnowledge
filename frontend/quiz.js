@@ -97,3 +97,26 @@ function quizSetup(quizId) {
     };
     xhr.send();
 }
+
+function createAnswers(answerIds, questionId) {
+    var answers = [for (answerId of answerIds) {
+        correct: document.getElementById(answerId.correctId).checked,
+        content: document.getElementById(answerId.contentId).value,
+        questionId: questionId
+    }];
+    var xhr = new XMLHttpRequest();
+    answers.forEach(function(answer) {
+        xhr.open("POST", "/answer", true);
+        xhr.send(answer);
+    });
+}
+
+function createQuestion(questionId, answerIds, quizId) {
+    var question = document.getElementById(questionId).value;
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "/question/" + quizId.toString(), true);
+    xhr.onreadystatechange = function() {
+        var response = xhr.responseText;
+        var responseJson = JSON.parse(response);
+    }
+}

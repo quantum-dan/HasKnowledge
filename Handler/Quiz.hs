@@ -44,6 +44,9 @@ createQuestion question answers qId = do
   _ <- createAnswers answers questionId
   return ()
 
+createQuestionNoAnswers :: Question -> Key Quiz -> Handler (Key Question)
+createQuestionNoAnswers question quizId = runDB $ insert $ question {questionQuizId = quizId}
+
 createQuestionF :: FormResult FormQuestion -> Key Quiz -> HandlerT App IO ()
 createQuestionF formResult qId =
   case formResult of
@@ -155,14 +158,35 @@ postQuestionR qId = do
           ((result, _), _) <- runFormPost createQuestionForm
           jsonQuestion <- parseJsonBody
           case jsonQuestion of
-            Success (question, answers) -> do
-              createQuestion question answers qId
-              redirect (QuizR qId)
+            Success question -> do
+              questionId <- createQuestionNoAnswers question qId
+              selectRep $ do
+                provideJson questionId
+                provideRep $ return [shamlet|<p>Question id: #{show questionId}|]
             Error _ -> do
               createQuestionF result qId
               redirect (QuizR qId)
         else redirect (QuizR qId)
     Nothing -> redirect HomeR
+
+postAnswerR :: Handler Value
+postAnswerR = do
+  auth <- requireAuth
+  jsonAnswer <- parseJsonBody
+  case jsonAnswer of
+    Success answer -> do
+      maybeQuestion <- runDB $ get $ answerQuestionId answer
+      maybeQuiz <- case maybeQuestion of
+        Nothing -> return Nothing
+        Just question -> (runDB . get. questionQuizId) question
+      case maybeQuiz of
+        Nothing -> return $ object ["error" .= ("nonexistent quiz" :: Text)]
+        Just quiz -> if quizUserId quiz == entityKey auth
+          then do
+            _ <- runDB $ insert answer
+            return $ object ["success" .= True]
+          else return $ object ["error" .= ("user does not own quiz" :: Text)]
+    Error error -> return $ object ["error" .= error]
 
 getFilteredQuizzesR :: Text -> Handler TypedContent
 getFilteredQuizzesR topic = do

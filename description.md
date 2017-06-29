@@ -60,7 +60,7 @@ Answer:
 {
   correct: Bool,
   content: String,
-  questionId: Int (irrelevant if POST)
+  questionId: Int (note: POSTing JSON data to create a Question will respond with the Question's ID)
 }
 
 Question:
