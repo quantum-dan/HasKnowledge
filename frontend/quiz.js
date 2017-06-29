@@ -14,7 +14,8 @@ function updateQuizList(handler) { // Handler receives a list of quizzes
 function quizzesToList(quizzes, listId) {
     result = "";
     quizzes.forEach(function(quiz) {
-        listItem = "<li><a href='/quiz/" + quiz.id.toString() + "'>" + quiz.title + "</a></li>";
+        // listItem = "<li><a href='/quiz/" + quiz.id.toString() + "'>" + quiz.title + "</a></li>";
+        listItem = "<li onclick='quizSetup(" + quiz.id.toString() + ")'>" + quiz.title + "</li>";
         result += listItem;
     });
     document.getElementById(listId).innerHTML = result;
@@ -35,16 +36,64 @@ function createQuiz(titleId, topicId, publicId, listId) {
 }
 
 function quizzesSetup() {
-    html = "<div><input id='title' type='text' placeholder='title' /><input id='topic' type='text' placeholder='topic' /><input type='checkbox' id='public' /><input type='button' onclick=createQuiz('title','topic','public','quizzes') /></div><ul id='quizzes' style='text-align:left;'></ul>";
+    html = "<div>Create Quiz: <input id='title' type='text' placeholder='title' /><input id='topic' type='text' placeholder='topic' /><input type='checkbox' id='public' /><input type='button' onclick=createQuiz('title','topic','public','quizzes') value='Create' /></div><ul id='quizzes' style='text-align:left;'></ul>";
     document.getElementById("main").innerHTML = html;
     updateQuizList(function(quizzes) {quizzesToList(quizzes, "quizzes");});
 }
 
-var total = 0;
-var correct = 0;
+var quizData = {
+    quiz: null,
+    correct: 0,
+    total: 0
+};
 
-function quizSetup() {
-    total = 0;
-    correct = 0;
-    html = ""
+function answerToHtml(answer) {
+    html = "<li onclick=handleAnswer(this," + answer.correct.toString() + ")>" + answer.content + "</li>";
+    return html;
+}
+
+function questionToHtml(question) {
+    html = "<div style='text-align:left'>" + question.question + "<ul>";
+    question.answers.forEach(function(answer) { html += answerToHtml(answer); });
+    html += "</ul></div>";
+    return html;
+}
+
+function showScore() {
+    percentage = (quizData.correct / quizData.total * 100).toString() + "%";
+    result = "Correct: " + quizData.correct.toString() + "; Total: " + quizData.total.toString() + "; Accuracy: " + percentage;
+    return result;
+}
+
+function quizToHtml(quiz) {
+    html = "<h3>" + quiz.maybequiz.title + " (" + quiz.maybequiz.topic + ")</h3><div style='text-align:left'>";
+    quiz.questions.forEach(function(question){ html += questionToHtml(question); });
+    html += "<div onclick='this.innerHTML=showScore()'>Show Score</div>";
+    html += "</div>";
+    html += "<div onclick='quizzesSetup()'>Return</div>";
+    return html;
+}
+
+function handleAnswer(object, correct) {
+    quizData.total++;
+    if (correct) {
+        quizData.correct++;
+    }
+    object.innerHTML += (" (" + correct.toString() + ")");
+}
+
+function quizSetup(quizId) {
+    quizData.correct = 0;
+    quizData.total = 0;
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", "/quiz/" + quizId.toString(), true);
+    xhr.onreadystatechange = function() {
+        document.getElementById("main").innerHTML = xhr.responseText; // For debugging
+        maybeQuiz = JSON.parse(xhr.responseText);
+        if (maybeQuiz.maybequiz) {
+            quizData.quiz = maybeQuiz;
+            document.getElementById("main").innerHTML = quizToHtml(maybeQuiz);
+        }
+    };
+    xhr.send();
 }
