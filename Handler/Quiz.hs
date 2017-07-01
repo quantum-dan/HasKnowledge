@@ -106,12 +106,13 @@ instance ToJSON QuizQuestion where
       , "answers" .= answers
     ]
 
-data QuizInfo = QuizInfo (Maybe Quiz) [QuizQuestion] Bool
+data QuizInfo = QuizInfo (Key Quiz) (Maybe Quiz) [QuizQuestion] Bool
 
 instance ToJSON QuizInfo where
-  toJSON (QuizInfo q qs o) = object
+  toJSON (QuizInfo k q qs o) = object
     [
-      "maybequiz" .= q
+      "id" .= k
+      , "maybequiz" .= q
       , "questions" .= qs
       , "owner" .= o
     ]
@@ -133,8 +134,8 @@ getQuizR qId = do
           Just q -> quizPublicAccess q
   selectRep $ do
     provideJson $ case quizAccess of
-      True -> QuizInfo quiz jsonQuestions ownsQuiz
-      False -> QuizInfo Nothing [] False
+      True -> QuizInfo qId quiz jsonQuestions ownsQuiz
+      False -> QuizInfo qId Nothing [] False
     provideRep $ defaultLayout $ do
       setTitle "Quiz"
       $(widgetFile "quiz")

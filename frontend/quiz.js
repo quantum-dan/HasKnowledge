@@ -36,7 +36,9 @@ function createQuiz(titleId, topicId, publicId, listId) {
 }
 
 function quizzesSetup() {
-    html = "<div>Create Quiz: <input id='title' type='text' placeholder='title' /><input id='topic' type='text' placeholder='topic' /><input type='checkbox' id='public' /><input type='button' onclick=createQuiz('title','topic','public','quizzes') value='Create' /></div><ul id='quizzes' style='text-align:left;'></ul>";
+    html = "<div>Create Quiz: <input id='title' type='text' placeholder='title' /><input id='topic' type='text' placeholder='topic' />" +
+        "<input type='checkbox' id='public' /><input type='button' onclick=createQuiz('title','topic','public','quizzes') value='Create' />" +
+        "</div><ul id='quizzes' style='text-align:left;'></ul>";
     document.getElementById("main").innerHTML = html;
     updateQuizList(function(quizzes) {quizzesToList(quizzes, "quizzes");});
 }
@@ -78,10 +80,11 @@ function quizToHtml(quiz) {
     html += "<div onclick='this.innerHTML=showScore()'>Show Score</div>";
     html += "</div>";
     html += "<div>" + "<input type=text placeholder='Question' id='questionAdd' />" +
-        "<input type=text placeholder='Answer 1' id='questionAnswer1' />" + "<input type=checkbox />" +
-        "<input type=text placeholder='Answer 2' id='questionAnswer2' />" + "<input type=checkbox />" +
+        "<input type=text placeholder='Answer 1' id='questionAnswer1' />" + "<input type=checkbox id='questionCorrect1' />" +
+        "<input type=text placeholder='Answer 2' id='questionAnswer2' />" + "<input type=checkbox id='questionCorrect2' />" +
         "<button value='Add' onclick=createQuestion('questionAdd'," +
-        "[makeAnswerId('questionAnswer1','questionCorrect1'),makeAnswerId('questionAnswer2','questionCorrect2')],0) />" +
+        "[makeAnswerId('questionAnswer1','questionCorrect1'),makeAnswerId('questionAnswer2','questionCorrect2')]," + quiz.id.toString() +
+        ") />" +
         "</div>";
     html += "<div onclick='quizzesSetup()'>Return</div>";
     return html;
@@ -118,10 +121,7 @@ function createAnswers(answerIds, questionId) {
         questionId: questionId
     }; });
     var xhr = new XMLHttpRequest();
-    answers.forEach(function(answer) {
-        xhr.open("POST", "/answer", true);
-        xhr.send(JSON.stringify(answer));
-    });
+    xhr.send(JSON.stringify(answers));
 }
 
 function createQuestion(questionId, answerIds, quizId) {
