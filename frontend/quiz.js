@@ -65,11 +65,24 @@ function showScore() {
     return result;
 }
 
+function makeAnswerId(correctId, contentId) {
+    return {
+        correctId: correctId,
+        contentId: contentId
+    };
+}
+
 function quizToHtml(quiz) {
     html = "<h3>" + quiz.maybequiz.title + " (" + quiz.maybequiz.topic + ")</h3><div style='text-align:left'>";
     quiz.questions.forEach(function(question){ html += questionToHtml(question); });
     html += "<div onclick='this.innerHTML=showScore()'>Show Score</div>";
     html += "</div>";
+    html += "<div>" + "<input type=text placeholder='Question' id='questionAdd' />" +
+        "<input type=text placeholder='Answer 1' id='questionAnswer1' />" + "<input type=checkbox />" +
+        "<input type=text placeholder='Answer 2' id='questionAnswer2' />" + "<input type=checkbox />" +
+        "<button value='Add' onclick=createQuestion('questionAdd'," +
+        "[makeAnswerId('questionAnswer1','questionCorrect1'),makeAnswerId('questionAnswer2','questionCorrect2')],0) />" +
+        "</div>";
     html += "<div onclick='quizzesSetup()'>Return</div>";
     return html;
 }
@@ -99,24 +112,29 @@ function quizSetup(quizId) {
 }
 
 function createAnswers(answerIds, questionId) {
-    var answers = [for (answerId of answerIds) {
+    var answers = answerIds.map(answerId => {return {
         correct: document.getElementById(answerId.correctId).checked,
         content: document.getElementById(answerId.contentId).value,
         questionId: questionId
-    }];
+    }; });
     var xhr = new XMLHttpRequest();
     answers.forEach(function(answer) {
         xhr.open("POST", "/answer", true);
-        xhr.send(answer);
+        xhr.send(JSON.stringify(answer));
     });
 }
 
 function createQuestion(questionId, answerIds, quizId) {
-    var question = document.getElementById(questionId).value;
+    var question = {
+        question: document.getElementById(questionId).value,
+        quizId: quizId
+    };
     var xhr = new XMLHttpRequest();
     xhr.open("POST", "/question/" + quizId.toString(), true);
     xhr.onreadystatechange = function() {
         var response = xhr.responseText;
         var responseJson = JSON.parse(response);
-    }
+        createAnswers(answerIds, responseJson);
+    };
+    xhr.send(JSON.stringify(question));
 }

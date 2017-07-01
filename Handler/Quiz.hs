@@ -38,6 +38,10 @@ createAnswers ((answer, correct):answers) qId = do
   createAnswers answers qId
 createAnswers [] _ = return ()
 
+createAnswersJson :: [Answer] -> Handler ()
+createAnswersJson [] = return ()
+createAnswersJson (answer:answers) = (runDB $ insert answer) >> createAnswersJson answers
+
 createQuestion :: Question -> [(Text, Bool)] -> Key Quiz -> Handler ()
 createQuestion question answers qId = do
   questionId <- runDB $ insert $ question {questionQuizId = qId}
@@ -172,20 +176,23 @@ postQuestionR qId = do
 postAnswerR :: Handler Value
 postAnswerR = do
   auth <- requireAuth
-  jsonAnswer <- parseJsonBody
-  case jsonAnswer of
-    Success answer -> do
-      maybeQuestion <- runDB $ get $ answerQuestionId answer
-      maybeQuiz <- case maybeQuestion of
-        Nothing -> return Nothing
-        Just question -> (runDB . get. questionQuizId) question
-      case maybeQuiz of
-        Nothing -> return $ object ["error" .= ("nonexistent quiz" :: Text)]
-        Just quiz -> if quizUserId quiz == entityKey auth
-          then do
-            _ <- runDB $ insert answer
-            return $ object ["success" .= True]
-          else return $ object ["error" .= ("user does not own quiz" :: Text)]
+  jsonAnswers <- parseJsonBody
+  case jsonAnswers of
+    Success answers -> do
+      case answers of
+        [] -> return $ object ["error" .= ("empty answer list" :: Text)]
+        answers@(answer:_) -> do
+          maybeQuestion <- runDB $ get $ answerQuestionId answer
+          maybeQuiz <- case maybeQuestion of
+            Nothing -> return Nothing
+            Just question -> (runDB . get. questionQuizId) question
+          case maybeQuiz of
+            Nothing -> return $ object ["error" .= ("nonexistent quiz" :: Text)]
+            Just quiz -> if quizUserId quiz == entityKey auth
+              then do
+                createAnswersJson $ map (\x -> x {answerQuestionId = answerQuestionId answer}) answers -- Make sure the question IDs are all the same
+                return $ object ["success" .= True]
+              else return $ object ["error" .= ("user does not own quiz" :: Text)]
     Error error -> return $ object ["error" .= error]
 
 getFilteredQuizzesR :: Text -> Handler TypedContent
