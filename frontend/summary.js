@@ -48,15 +48,15 @@ function summariesHandler(listId) {
 
 function submitSummary(titleId, topicId, publicId, contentId) {
     var summary = {
-        title: document.getElementById(titleId),
-        topic: document.getElementById(topicId),
-        publicAccess: document.getElementById(publicId),
-        content: document.getElementById(contentId),
+        title: document.getElementById(titleId).value,
+        topic: document.getElementById(topicId).value,
+        publicAccess: document.getElementById(publicId).checked,
+        content: document.getElementById(contentId).value,
         userId: 0
     };
     var xhr = new XMLHttpRequest();
     xhr.open("POST", "/summaries", true);
-    xhr.onreadystatechange = function() {summariesHandler(xhr, "summaries");};
+    xhr.onreadystatechange = setupSummaries;
     xhr.send(JSON.stringify(summary));
     [titleId, topicId, contentId].forEach(function(id) {
         document.getElementById(id).value = "";
