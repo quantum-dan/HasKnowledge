@@ -40,12 +40,15 @@ postSummariesR = do
     Success summary -> do
       _ <- addSummary auth summary
       redirect SummariesR
-    Error _ ->
+    Error error ->
       case result of
         FormSuccess fs -> do
           _ <- addSummaryForm auth fs
           redirect SummariesR
-        _ -> redirect SummariesR
+        FormFailure errors -> selectRep $ do
+          provideJson $ object ["error" .= error]
+          provideRep $ return [shamlet|<p>Errors: #{show errors}|]
+        FormMissing -> redirect SummariesR
 
 getSummaryR :: Key Summary -> Handler TypedContent
 getSummaryR sId = do

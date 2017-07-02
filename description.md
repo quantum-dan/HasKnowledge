@@ -45,7 +45,7 @@ Notes:
 }
 
 ### Quizzes
-Quizzes are at /quizzes.  Particular quizzes at /quiz/<QuizId>.  POST questions to /quiz/<QuizId>.
+Quizzes are at /quizzes.  Particular quizzes at /quiz/<QuizId>.  POST questions to /question/<QuizId>.
 
 Quiz: (list of Quiz for quizzes)
 {
@@ -63,10 +63,15 @@ Answer:
   questionId: Int (note: POSTing JSON data to create a Question will respond with the Question's ID)
 }
 
-Question:
+Question (response):
 {
   question: String,
   answers: [Answer]
+}
+Question (POST):
+{
+  question: String,
+  quizId: Int (irrelevant if POST)
 }
 
 Quiz and Questions: (no POST request will use this--create quizzes with the one above, and POST individual questions and answers to a quiz)
@@ -75,6 +80,11 @@ Quiz and Questions: (no POST request will use this--create quizzes with the one 
   owner: Bool,
   questions: [Question]
 }
+
+#### POSTing
+Quiz: POST stringified Quiz object to /quizzes.
+Question: POST stringified Question (POST) to /question/<QuizId>.  Response will be a stringified integer, which is the Question ID.
+Answers: POST stringified list of Answers (with correct questionId) to /answer.
 
 ### Summaries
 Summaries are at /summaries.  Particular summaries are at /summary/<SummaryId>.
@@ -87,6 +97,9 @@ Summary:
   publicAccess: Bool,
   title: String
 }
+
+#### POSTing
+POST stringified Summary to /summaries.
 
 ## Key Libraries
 * Yesod: web framework
