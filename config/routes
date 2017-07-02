@@ -9,19 +9,17 @@
 
 /username UsernameR POST GET
 
-/quizzes QuizzesR GET
+/quizzes QuizzesR GET POST
 /quizzes/#Text FilteredQuizzesR GET
-/quiz/#QuizId QuizR GET
-/mkquiz MkQuizR POST
-/deletequiz/#QuizId DeleteQuizR GET
+/quiz/#QuizId QuizR GET DELETE
 
 /question/#QuizId QuestionR POST
+/answer AnswerR POST
 
 /summaries SummariesR GET POST
 /summaries/#Text FilteredSummariesR GET
-/deletesummary/#SummaryId DeleteSummaryR GET
 
-/summary/#SummaryId SummaryR GET
+/summary/#SummaryId SummaryR GET DELETE
 
 /noteuser NotesUserR POST
 /topics TopicsR GET POST
@@ -29,5 +27,3 @@
 
 /json/topics/#NotesUserId TopicsJsonR GET POST
 /json/notes/#NotesTopicId NotesJsonR GET POST
-
-/json/mkquiz MkQuizJsonR POST

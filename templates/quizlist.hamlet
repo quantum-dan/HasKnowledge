@@ -2,7 +2,7 @@
 $maybe _ <- mAuth
        <div>
           <h4>Create a Quiz
-          <form method=POST action=@{MkQuizR} enctype=#{enctype}>
+          <form method=POST action=@{QuizzesR} enctype=#{enctype}>
                  ^{quizForm}
                  <button>Submit
 
