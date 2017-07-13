@@ -36,8 +36,8 @@ function createQuiz(titleId, topicId, publicId, listId) {
 }
 
 function quizzesSetup() {
-    html = "<div>Create Quiz: <input id='title' type='text' placeholder='title' /><input id='topic' type='text' placeholder='topic' />" +
-        " Public? <input type='checkbox' id='public' /><input type='button' onclick=createQuiz('title','topic','public','quizzes') value='Create' />" +
+    html = "<div id='div_quiz_create'>Create Quiz: <input id='title' type='text' placeholder='title' /><input id='topic' type='text' placeholder='topic' />" +
+        " Public? <input type='checkbox' id='public' /><input type='button' id='button_quiz_create' onclick=createQuiz('title','topic','public','quizzes') value='Create' />" +
         "</div><ul id='quizzes' style='text-align:left;'></ul>";
     document.getElementById("main").innerHTML = html;
     updateQuizList(function(quizzes) {quizzesToList(quizzes, "quizzes");});
