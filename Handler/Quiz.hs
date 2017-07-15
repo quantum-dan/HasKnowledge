@@ -98,8 +98,8 @@ postQuizzesR = do
           redirect QuizzesR
         FormFailure formError -> do
           selectRep $ do
-            provideRep $ return [shamlet|<p>Error in form submission: #{show formError}|]
             provideJson $ object ["error" .= jsonError]
+            provideRep $ return [shamlet|<p>Error in form submission: #{show formError}|]
 
 data QuizQuestion = QuizQuestion Text [Answer]
 instance ToJSON QuizQuestion where
