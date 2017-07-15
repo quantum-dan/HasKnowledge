@@ -63,11 +63,8 @@ createQuizForm = renderDivs $ FormQuiz
   <*> areq textField "Topic" Nothing
   <*> areq checkBoxField "Public" Nothing
 
-createQuizF :: FormResult FormQuiz -> Key User -> HandlerT App IO ()
-createQuizF formResult userId =
-  case formResult of
-    FormSuccess (FormQuiz title topic public) -> createQuiz (Quiz title userId topic public) userId
-    _ -> return ()
+createQuizF :: FormQuiz -> Key User -> HandlerT App IO ()
+createQuizF (FormQuiz title topic public) userId = createQuiz (Quiz title userId topic public) userId
 
 createQuiz :: Quiz -> Key User -> Handler ()
 createQuiz quiz userId = do
@@ -85,7 +82,7 @@ getQuizzesR = do
       setTitle "Quizzes"
       $(widgetFile "quizlist")
 
-postQuizzesR :: Handler Html
+postQuizzesR :: Handler TypedContent
 postQuizzesR = do
   auth <- requireAuth
   ((result, _), _) <- runFormPost createQuizForm
@@ -94,9 +91,15 @@ postQuizzesR = do
     Success quiz -> do
       createQuiz quiz $ entityKey auth
       redirect QuizzesR
-    Error _ -> do
-      createQuizF result (entityKey auth)
-      redirect QuizzesR
+    Error jsonError -> do
+      case result of
+        FormSuccess fq -> do
+          createQuizF fq $ entityKey auth
+          redirect QuizzesR
+        FormFailure formError -> do
+          selectRep $ do
+            provideRep $ return [shamlet|<p>Error in form submission: #{show formError}|]
+            provideJson $ object ["error" .= jsonError]
 
 data QuizQuestion = QuizQuestion Text [Answer]
 instance ToJSON QuizQuestion where
