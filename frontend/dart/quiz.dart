@@ -7,7 +7,9 @@ const Map<String, String> paths = const {
   "quizzes": "/quizzes",
   "quiz": "/quiz/",
   "summaries": "/summaries",
-  "summary": "/summary/"
+  "summary": "/summary/",
+  "question": "/question/",
+  "answer": "/answer"
 };
 
 Future<List<Map>> getQuizList() async {
@@ -23,6 +25,7 @@ Future<Map> getQuiz(int id) async {
 
 Future loadQuiz(int id, Element quizElement) async {
   Map quiz = await getQuiz(id);
+  quizElement.children = [];
   if (quiz["maybequiz"] == null) {
     quizElement.text = "Could not load quiz with ID ${quiz['id']}";
   } else {
@@ -44,6 +47,14 @@ Future loadQuiz(int id, Element quizElement) async {
       quizDisplay.children.add(output);
     });
     quizElement.children = [quizDisplay];
+    var reloadButton = new InputElement()
+        ..type = "button"
+        ..value = "Refresh quiz"
+        ..onClick.listen((_) {loadQuiz(id, quizElement);});
+    quizElement.children.add(reloadButton);
+    var questionFormElement = new DivElement();
+    quizElement.children.add(questionFormElement);
+    createQuestionForm(questionFormElement, quizElement, id);
   }
 }
 
@@ -69,7 +80,7 @@ Future postQuiz(Map quiz) async {
     print(req.responseText);
   });
   print(JSON.encode(quiz));
-  req.send(quiz);
+  req.send(JSON.encode(quiz));
 }
 
 Future handleQuizForm(
@@ -85,7 +96,7 @@ Future handleQuizForm(
   postQuiz(quizData);
 }
 
-Future setupQuizForm(Element quizFormElement) async {
+Future setupQuizForm(Element quizFormElement, Element quizzesElement) async {
   var inputs = [
     new InputElement()
       ..type = "text"
@@ -98,11 +109,87 @@ Future setupQuizForm(Element quizFormElement) async {
   var submitButton = new InputElement()
     ..type = "button"
     ..value = "Submit"
-    ..onClick.listen((_) {
-      handleQuizForm(inputs[0], inputs[1], inputs[2]);
+    ..onClick.listen((_) async {
+      await handleQuizForm(inputs[0], inputs[1], inputs[2]);
+      setupQuizzes(quizzesElement);
     });
   quizFormElement.children = inputs;
   quizFormElement.children.add(submitButton);
+}
+
+Future createAnswers(List<Element> answerElems, int questionId) async {
+  var answers = answerElems.map((elem) {
+    Map answerData = {
+      "content": elem.children[0].value,
+      "correct": elem.children[2].checked,
+      "questionId": questionId
+    };
+    return answerData;
+  }).toList();
+  var req = new HttpRequest();
+  req.open("POST", baseUrl + paths["answer"]);
+  req.onReadyStateChange.listen((_) {
+    print(req.responseText);
+  });
+  print(JSON.encode(answers));
+  req.send(JSON.encode(answers));
+}
+
+Future createQuestion(
+    InputElement questionElem, Element answerContainer, int quizId) async {
+  Map question = {"question": questionElem.value, "quizId": quizId};
+  var req = new HttpRequest();
+  req.open("POST", baseUrl + paths["question"] + quizId.toString());
+  req.onReadyStateChange.listen((_) {
+    print("Response to Question POST: " + req.responseText);
+    if (req.readyState == 4) {
+        print("Convering result ${req.responseText} to JSON");
+        var questionId = JSON.decode(req.responseText);
+        print("Question ID: $questionId");
+        createAnswers(answerContainer.children, questionId);
+    }
+  });
+  print(JSON.encode(question));
+  req.send(JSON.encode(question));
+}
+
+Future<List<InputElement>> addAnswerElement(Element targetElement) async {
+  DivElement container = new DivElement();
+  InputElement contentElem = new InputElement()
+    ..type = "text"
+    ..placeholder = "Answer Content";
+  SpanElement correctLabel = new SpanElement()..text = "Correct? ";
+  InputElement correctElem = new InputElement()..type = "checkbox";
+  InputElement removeElem = new InputElement()
+    ..type = "button"
+    ..value = "Remove answer"
+    ..onClick.listen((_) {
+      targetElement.children.remove(container);
+    });
+  container.children = [contentElem, correctLabel, correctElem, removeElem];
+  targetElement.children.add(container);
+  return [contentElem, correctElem];
+}
+
+Future createQuestionForm(Element targetElement, Element quizElement, int quizId) async {
+  InputElement questionField = new InputElement()
+    ..type = "text"
+    ..placeholder = "Question Text";
+  DivElement answerFields = new DivElement();
+  for (var i = 0; i < 4; ++i) {
+    addAnswerElement(answerFields);
+  }
+  InputElement addAnswerField = new InputElement()
+      ..type = "button"
+      ..value = "Add Answer"
+      ..onClick.listen((_) {addAnswerElement(answerFields);});
+  InputElement submit = new InputElement()
+    ..type = "button"
+    ..value = "Submit"
+    ..onClick.listen((_) {
+      createQuestion(questionField, answerFields, quizId);
+    });
+  targetElement.children = [questionField, addAnswerField, answerFields, submit];
 }
 
 void main() {
@@ -114,5 +201,5 @@ void main() {
       setupQuizzes(quizElem);
     });
   document.body.children..add(elem)..add(formElem)..add(quizElem);
-  setupQuizForm(formElem);
+  setupQuizForm(formElem, quizElem);
 }
