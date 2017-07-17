@@ -1,0 +1,52 @@
+body {
+    font-family: "Times New Roman", times, serif;
+    text-align: center;
+}
+
+input[type="button"] {
+    background-color: #AAA;
+    color: #000;
+    text-align: center;
+    border: none;
+    border-radius: 4px;
+    padding: 4px;
+    margin: 2px;
+}
+
+.dartnav {
+    width: 48%;
+}
+
+.dartnavbar {
+    text-align: center;
+}
+
+input[type="button"]:hover {
+    background-color: #CCC;
+}
+
+.questionForm, .quizForm, .summaryForm {
+    text-align: center;
+}
+
+.quiz {
+    list-style-type: none;
+}
+
+.quizzes, .summaries, .quiz {
+    text-align: left;
+}
+
+.questionField, .answerContentInput {
+    width: 50%;
+}
+
+.deleteQuiz, .deleteQuizConfirm {
+    background-color: #F00 !important;
+    color: #FFF !important;
+}
+
+.deleteQuizCancel {
+    background-color: #0F0 !important;
+    color: #FFF !important;
+}
