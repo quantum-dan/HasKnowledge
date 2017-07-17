@@ -192,7 +192,7 @@ Future createQuestionForm(Element targetElement, Element quizElement, int quizId
   targetElement.children = [questionField, addAnswerField, answerFields, submit];
 }
 
-void main() {
+void runQuizzes() {
   var quizElem = new DivElement();
   var formElem = new DivElement();
   var elem = new DivElement()
@@ -200,6 +200,6 @@ void main() {
     ..onClick.listen((_) {
       setupQuizzes(quizElem);
     });
-  document.body.children..add(elem)..add(formElem)..add(quizElem);
+  document.body.children = [elem, formElem, quizElem];
   setupQuizForm(formElem, quizElem);
 }
