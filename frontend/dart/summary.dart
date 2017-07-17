@@ -106,7 +106,7 @@ Future loadSummaries(Element target) async {
   req.send();
 }
 
-void runSummaries() {
+void runSummaries(Element target) {
     Element container = new DivElement();
     Element summariesElem = new DivElement();
     Element loadButton = new InputElement()
@@ -116,5 +116,5 @@ void runSummaries() {
     Element summaryForm = new DivElement();
     setupSummaryForm(summaryForm);
     container.children = [loadButton, summariesElem, summaryForm];
-    document.body.children = [container];
+    target.children = [container];
 }

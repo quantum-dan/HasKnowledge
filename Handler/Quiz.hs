@@ -216,15 +216,13 @@ getFilteredQuizzesR topic = do
 getAvailableQuizzes :: Maybe (Key User) -> Handler [Entity Quiz]
 getAvailableQuizzes mUserId = case mUserId of
   Nothing -> getPublicQuizzes
-  Just userId -> do
-    ownedOrShared <- runDB $ do
-      shared <- selectList [SharedQuizUserId ==. userId] []
-      let ownedFilter = [QuizUserId ==. userId]
-      let sharedQuizIds = map (sharedQuizQuizId . entityVal) shared
-      let ownedOrSharedFilter = foldr (||.) ownedFilter $ map (\id -> [QuizId ==. id]) sharedQuizIds
-      selectList ownedOrSharedFilter []
-    public <- getPublicQuizzes
-    return $ ownedOrShared ++ public
+  Just userId -> runDB $ do
+    shared <- selectList [SharedQuizUserId ==. userId] []
+    let ownedFilter = [QuizUserId ==. userId]
+    let sharedQuizIds = map (sharedQuizQuizId . entityVal) shared
+    let ownedOrSharedFilter = foldr (||.) ownedFilter $ map (\id -> [QuizId ==. id]) sharedQuizIds
+    let availableFilter = ownedOrSharedFilter ||. [QuizPublicAccess ==. True]
+    selectList availableFilter []
 
 getPublicQuizzes :: Handler [Entity Quiz]
 getPublicQuizzes = runDB $ selectList [QuizPublicAccess ==. True] []

@@ -12,6 +12,35 @@ const Map<String, String> paths = const {
   "answer": "/answer"
 };
 
+class QuizCounter {
+    int correctCount;
+    int totalCount;
+
+    QuizCounter() {
+        correctCount = 0;
+        totalCount = 0;
+    }
+
+    void increment(bool correct, [int weight = 1]) {
+        totalCount += weight;
+        if (correct) {
+            correctCount += weight;
+        }
+    }
+
+    void correct([int weight = 1]) => increment(true, weight);
+    void incorrect([int weight = 1]) => increment(false, weight);
+
+    void reset() {
+        correctCount = 0;
+        totalCount = 0;
+    }
+
+    num fraction() => correctCount/totalCount;
+    String percentage() => "${correctCount/totalCount * 100}%";
+    String display() => "Total: $totalCount; Correct: $correctCount; Accuracy: ${percentage()}";
+}
+
 Future<List<Map>> getQuizList() async {
   var jsonString = await HttpRequest.getString(baseUrl + paths["quizzes"]);
   return JSON.decode(jsonString);
@@ -30,6 +59,7 @@ Future loadQuiz(int id, Element quizElement) async {
     quizElement.text = "Could not load quiz with ID ${quiz['id']}";
   } else {
     var quizDetails = quiz["maybequiz"];
+    QuizCounter counter = new QuizCounter();
     var quizDisplay = new UListElement()
       ..text = "${quizDetails['title']} (${quizDetails['topic']})";
     List<Map> questions = quiz["questions"];
@@ -40,6 +70,7 @@ Future loadQuiz(int id, Element quizElement) async {
         var answerElem = new LIElement()..text = answer["content"];
         answerElem.onClick.listen((_) {
           answerElem.text += " ${answer['correct'] ? 'Correct!' : 'Incorrect'}";
+          counter.increment(answer["correct"]);
         });
         inner.children.add(answerElem);
       });
@@ -47,6 +78,14 @@ Future loadQuiz(int id, Element quizElement) async {
       quizDisplay.children.add(output);
     });
     quizElement.children = [quizDisplay];
+    var scoreContainer = new DivElement();
+    var scoreDisplay = new SpanElement();
+    var scoreButton = new InputElement()
+        ..type = "button"
+        ..value = "Show Score"
+        ..onClick.listen((_) {scoreDisplay.text = counter.display();});
+    scoreContainer.children = [scoreButton, scoreDisplay];
+    quizElement.children.add(scoreContainer);
     var reloadButton = new InputElement()
         ..type = "button"
         ..value = "Refresh quiz"
@@ -192,7 +231,7 @@ Future createQuestionForm(Element targetElement, Element quizElement, int quizId
   targetElement.children = [questionField, addAnswerField, answerFields, submit];
 }
 
-void runQuizzes() {
+void runQuizzes(Element target) {
   var quizElem = new DivElement();
   var formElem = new DivElement();
   var elem = new DivElement()
@@ -200,6 +239,6 @@ void runQuizzes() {
     ..onClick.listen((_) {
       setupQuizzes(quizElem);
     });
-  document.body.children = [elem, formElem, quizElem];
+  target.children = [elem, formElem, quizElem];
   setupQuizForm(formElem, quizElem);
 }
