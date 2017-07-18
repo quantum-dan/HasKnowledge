@@ -50,3 +50,15 @@ input[type="button"]:hover {
     background-color: #0F0 !important;
     color: #FFF !important;
 }
+
+.summaryContent {
+    border-style: none none none solid;
+    border-width: 2px;
+    border-color: #DDD;
+    width: 40%;
+    padding: 2px;
+}
+
+.summaryContentField {
+    width: 40%;
+}

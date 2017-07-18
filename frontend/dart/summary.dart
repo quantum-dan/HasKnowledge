@@ -29,6 +29,10 @@ Future handleSummaryPost(InputElement titleField, InputElement topicField,
     "id": 0
   };
   postSummary(summary);
+  titleField.value = "";
+  topicField.value = "";
+  publicAccessField.checked = false;
+  contentField.value = "";
 }
 
 Future setupSummaryForm(Element target) async {
@@ -49,6 +53,7 @@ Future setupSummaryForm(Element target) async {
   publicAccessContainer.children.add(publicAccessField);
   var contentField = new TextAreaElement()
     ..placeholder = "Summary"
+    ..rows = 20
     ..classes.add("summaryContentField");
   var contentContainer = new DivElement()
     ..children = [contentField]
@@ -77,11 +82,16 @@ Future setupSummaryForm(Element target) async {
 Element summaryToHtml(Map summary) {
   var container = new LIElement()
     ..classes.add("summaryListing")
-    ..text =
-        "${summary['title']} (${summary['topic']}) Public: ${summary['publicAccess']}";
-  var contents = new DivElement()
-    ..text = summary["content"]
-    ..classes.add("summaryContent");
+    ..text = "${summary['title']} (${summary['topic']})";
+  var contents = new DivElement()..classes.add("summaryContent");
+  summary["content"]
+      .replaceAll("<br />", "\n")
+      .replaceAll("<br>", "\n")
+      .split("\n")
+      .forEach((item) {
+    contents.children.add(new SpanElement()..text = item);
+    contents.children.add(new BRElement());
+  });
   var expandToggle = new InputElement()
     ..type = "button"
     ..classes.add("summaryExpandToggle")
