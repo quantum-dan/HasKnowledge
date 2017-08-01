@@ -33,7 +33,7 @@ input[type="button"]:hover {
     list-style-type: none;
 }
 
-.quizzes, .summaries, .quiz {
+.quizzes, .summaries, .quiz, .filters {
     text-align: left;
 }
 

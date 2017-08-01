@@ -1,5 +1,6 @@
 import "summary.dart";
 import "quiz.dart";
+import "generic.dart";
 import "dart:html";
 
 void main() {

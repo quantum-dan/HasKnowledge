@@ -27,6 +27,12 @@ getHomeR = do
           setTitle "HasKnowledge"
           $(widgetFile "homepage")
 
+getHomeDartR :: Handler Html
+-- Dart version
+getHomeDartR = defaultLayout $ do
+    setTitle "HasKnowledge"
+    $(widgetFile "dart")
+
 getHomeTestR :: Handler Html -- For JavaScript testing
 getHomeTestR = do
   defaultLayout $ do

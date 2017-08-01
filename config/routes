@@ -1,11 +1,14 @@
 /static StaticR Static appStatic
 /auth   AuthR   Auth   getAuth
 
+/check LoggedInR GET
+
 /favicon.ico FaviconR GET
 /robots.txt RobotsR GET
 
 / HomeR GET
 /test HomeTestR GET
+/dart HomeDartR GET
 
 /username UsernameR POST GET
 

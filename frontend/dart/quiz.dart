@@ -1,8 +1,9 @@
 import "dart:html";
 import "dart:convert";
 import "dart:async";
+import "generic.dart";
 
-const String baseUrl = "http://www.hasknowledge.net";
+const String baseUrl = "";
 const Map<String, String> paths = const {
   "quizzes": "/quizzes",
   "quiz": "/quiz/",
@@ -144,17 +145,44 @@ Future loadQuiz(int id, Element quizElement) async {
 
 Future setupQuizzes(Element quizElement) async {
   var quizzes = await getQuizList();
+  var quizInner = new DivElement();
   var quizList = new UListElement()..classes.add("quizzes");
   quizzes.forEach((quiz) {
     var listItem = new LIElement()..classes.add("quizListing");
     listItem.text =
         "Title: ${quiz['title']} User ID: ${quiz['userId']} Public: ${quiz['publicAccess'] ? 'Yes' : 'No'}";
     listItem.onClick.listen((_) {
-      loadQuiz(quiz["id"], quizElement);
+      loadQuiz(quiz["id"], quizInner);
     });
     quizList.children.add(listItem);
   });
-  quizElement.children = [quizList];
+  var quizTopics = quizzes.map((quiz) => quiz["topic"]).toSet(); // Ensures uniqueness
+  var filterButtons = new UListElement()
+      ..classes.add("filters");
+  filterButtons.children = quizTopics.map((topic) => new LIElement()
+          ..classes.add("filter")
+          ..children.add(new InputElement()
+              ..type = "button"
+              ..value = topic
+              ..onClick.listen((_) { setupFilteredQuizzes(quizInner, topic); })
+              )).toList();
+  quizInner.children = [quizList];
+  quizElement.children = [filterButtons, quizInner];
+}
+
+Future setupFilteredQuizzes(Element quizElement, String topic) async {
+    var quizzes = await getFiltered(Routes.quizzes(topic));
+    var quizList = new UListElement()..classes.add("quizzes");
+    for (Map quiz in quizzes) {
+        var listItem = new LIElement()
+            ..classes.add("quizListing")
+            ..text = "${quiz['title']} (${quiz['topic']})"
+            ..onClick.listen((_) {
+                loadQuiz(quiz["id"], quizElement);
+            });
+        quizList.children.add(listItem);
+    }
+    quizElement.children = [quizList];
 }
 
 Future postQuiz(Map quiz) async {
@@ -181,7 +209,9 @@ Future handleQuizForm(
 }
 
 Future setupQuizForm(Element quizFormElement, Element quizzesElement) async {
+  var description = new ParagraphElement()..text = "Create a Quiz";
   var inputs = [
+    description,
     new InputElement()
       ..type = "text"
       ..classes.add("quizTitleInput")
@@ -192,9 +222,13 @@ Future setupQuizForm(Element quizFormElement, Element quizzesElement) async {
       ..classes.add("quizTopicInput")
       ..classes.add("quizFormInput")
       ..placeholder = "Topic",
-    new InputElement()
-      ..type = "checkbox"
-      ..classes.add("quizPublicInput")
+    new SpanElement()
+      ..text = "Public? "
+      ..children.add(
+        new InputElement()
+          ..type = "checkbox"
+          ..classes.add("quizPublicInput")
+      )
   ];
   var submitButton = new InputElement()
     ..type = "button"

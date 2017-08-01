@@ -14,6 +14,8 @@ $newline never
 
     <meta name="viewport" content="width=device-width,initial-scale=1">
 
+    <link rel="stylesheet" type="text/css" href="/static/main.css">
+
     ^{pageHead pc}
 
     \<!--[if lt IE 9]>

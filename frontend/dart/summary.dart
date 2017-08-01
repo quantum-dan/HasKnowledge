@@ -1,8 +1,9 @@
 import "dart:async";
 import "dart:convert";
 import "dart:html";
+import "generic.dart";
 
-const String baseUrl = "http://www.hasknowledge.net/";
+const String baseUrl = "/";
 const String summariesUrl = "summaries";
 const String summaryUrl = "summary/";
 
@@ -36,6 +37,7 @@ Future handleSummaryPost(InputElement titleField, InputElement topicField,
 }
 
 Future setupSummaryForm(Element target) async {
+  var description = new ParagraphElement()..text = "Create a Summary";
   var titleField = new InputElement()
     ..type = "text"
     ..classes.add("summaryTitleField")
@@ -71,6 +73,7 @@ Future setupSummaryForm(Element target) async {
     ..children = [submitButton]
     ..classes.add("summarySubmitContainer");
   target.children = [
+    description,
     titleField,
     topicField,
     publicAccessContainer,
@@ -83,15 +86,8 @@ Element summaryToHtml(Map summary) {
   var container = new LIElement()
     ..classes.add("summaryListing")
     ..text = "${summary['title']} (${summary['topic']})";
-  var contents = new DivElement()..classes.add("summaryContent");
-  summary["content"]
-      .replaceAll("<br />", "\n")
-      .replaceAll("<br>", "\n")
-      .split("\n")
-      .forEach((item) {
-    contents.children.add(new SpanElement()..text = item);
-    contents.children.add(new BRElement());
-  });
+  var contents = new DivElement()..classes.add("summaryContent")
+      ..innerHtml = summary["content"];
   var expandToggle = new InputElement()
     ..type = "button"
     ..classes.add("summaryExpandToggle")
@@ -121,19 +117,31 @@ Element summaryToHtml(Map summary) {
 
 Future loadSummaries(Element target) async {
   var req = new HttpRequest();
+  var innerTarget = new UListElement()..classes.add("summaries");
+  var filterList = new UListElement()
+      ..classes.add("filters");
+  target.children = [filterList, innerTarget];
   req.onReadyStateChange.listen((_) {
     if (req.readyState == 4) {
       print(req.responseText);
       List<Map> summariesJson = JSON.decode(req.responseText);
+      filterList.children = summariesJson.map((summary) => summary["topic"]).toSet()
+          .map((topic) => new LIElement()
+                  ..classes.add("filter")
+                  ..children.add(new InputElement()
+                      ..type = "button"
+                      ..value = topic
+                      ..onClick.listen((_) { loadFilteredSummaries(innerTarget, topic); }))).toList();
       List<Element> summaries = summariesJson.map(summaryToHtml).toList();
-      Element summariesList = new UListElement()
-        ..children = summaries
-        ..classes.add("summaries");
-      target.children = [summariesList];
+      innerTarget.children = summaries;
     }
   });
   req.open("GET", baseUrl + summariesUrl);
   req.send();
+}
+
+Future loadFilteredSummaries(Element target, String topic) async {
+    target.children = (await getFiltered(Routes.summaries(topic))).map(summaryToHtml).toList();
 }
 
 void runSummaries(Element target) {
