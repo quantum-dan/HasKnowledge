@@ -13,6 +13,24 @@ input[type="button"] {
     margin: 2px;
 }
 
+.answerNotice {
+    text-align: center;
+    border: none;
+    border-radius: 2px;
+    padding: 1px;
+    margin: 1px;
+}
+
+.answerCorrect {
+    background-color: #5E5;
+    color: #FFF;
+}
+
+.answerIncorrect {
+    background-color: #F00;
+    color: #FFF;
+}
+
 .dartnav {
     width: 48%;
 }
