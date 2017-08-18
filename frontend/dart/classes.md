@@ -6,6 +6,8 @@
 * Navbar: "dartnavbar"
 * Summaries Button: "summariesSelect"
 * Quizzes Button: "quizzesSelect"
+* Filter List: "filters"
+* Filter Button: "filter"
 
 ## Single Quiz Display:
 * Single Quiz: "quiz"
