@@ -6,7 +6,8 @@
 /favicon.ico FaviconR GET
 /robots.txt RobotsR GET
 
-/ HomeR GET
+/ HomeDartR GET
+/home HomeR GET
 /test HomeTestR GET
 /dart HomeDartR GET
 
