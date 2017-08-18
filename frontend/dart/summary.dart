@@ -144,7 +144,7 @@ Future loadFilteredSummaries(Element target, String topic) async {
     target.children = (await getFiltered(Routes.summaries(topic))).map(summaryToHtml).toList();
 }
 
-void runSummaries(Element target) {
+Future runSummaries(Element target) async {
   Element container = new DivElement();
   Element summariesElem = new DivElement();
   Element loadButton = new InputElement()
@@ -154,8 +154,11 @@ void runSummaries(Element target) {
     ..onClick.listen((_) {
       loadSummaries(summariesElem);
     });
+  var loggedIn = await isLoggedIn();
   Element summaryForm = new DivElement()..classes.add("summaryForm");
-  setupSummaryForm(summaryForm);
-  container.children = [loadButton, summariesElem, summaryForm];
+  if (loggedIn) {
+    setupSummaryForm(summaryForm);
+  }
+  container.children = loggedIn ? [loadButton, summariesElem, summaryForm] : [loadButton, summariesElem];
   target.children = [container];
 }
