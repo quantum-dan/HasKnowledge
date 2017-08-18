@@ -128,9 +128,16 @@ getQuizR qId = do
   mAuth <- maybeAuth
   quiz <- runDB $ get qId
   -- Get the data out of the various Monads involved and determine if the user is the owner of the quiz
-  let ownsQuiz = case (quiz >>= (\q -> mAuth >>= (\m -> return (entityKey m == quizUserId q)))) of
+  {- let ownsQuiz = case (quiz >>= (\q -> mAuth >>= (\m -> return (entityKey m == quizUserId q)))) of
         Nothing -> False
-        Just x -> x
+        Just x -> x -}
+  let ownsQuiz = case do { -- Haven't compiled yet, might not pass the type checker
+        quizResult <- quiz;
+        auth <- mAuth;
+        return $ entityKey auth == quizUserId quizResult;
+                         } of
+                   Nothing -> False
+                   Just x -> x
   let quizAccess = ownsQuiz ||
         case quiz of
           Nothing -> False
