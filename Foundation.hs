@@ -119,6 +119,8 @@ instance Yesod App where
     isAuthorized (SummaryR _) _ = return Authorized
     isAuthorized (TopicsJsonR _) _ = return Authorized
     isAuthorized (NotesJsonR _) _ = return Authorized
+    isAuthorized LoggedInR False = return Authorized
+    isAuthorized HomeDartR False = return Authorized
     isAuthorized _ _ = isAuthenticated -- Default to requiring login
 
     -- What messages should be logged. The following includes all messages when
