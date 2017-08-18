@@ -9,7 +9,6 @@
 / HomeDartR GET
 /home HomeR GET
 /test HomeTestR GET
-/dart HomeDartR GET
 
 /username UsernameR POST GET
 

@@ -8,3 +8,5 @@ class Routes {
 }
 
 Future<List<Map>> getFiltered(String path) async => JSON.decode(await HttpRequest.getString(path));
+
+Future<bool> isLoggedIn() async => JSON.decode(await HttpRequest.getString("/check"))["auth"];

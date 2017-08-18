@@ -336,7 +336,7 @@ Future createQuestionForm(
   ];
 }
 
-void runQuizzes(Element target) {
+Future runQuizzes(Element target) async {
   var quizElem = new DivElement();
   var formElem = new DivElement()..classes.add("quizForm");
   var elem = new InputElement()
@@ -346,6 +346,6 @@ void runQuizzes(Element target) {
     ..onClick.listen((_) {
       setupQuizzes(quizElem);
     });
-  target.children = [elem, formElem, quizElem];
+  target.children = (await isLoggedIn()) ? [elem, formElem, quizElem] : [elem, quizElem];
   setupQuizForm(formElem, quizElem);
 }
