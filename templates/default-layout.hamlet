@@ -1,6 +1,6 @@
 <div .navbar>
      $forall item <- menuItems
-             <a .menuitem href=@{menuItemUrl item}>#{menuItemName item}
+                  <a .menuitem href=@{menuItemUrl item}>#{menuItemName item}
 
 <div .main>
   ^{widget}
