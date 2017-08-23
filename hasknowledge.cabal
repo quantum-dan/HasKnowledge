@@ -96,6 +96,8 @@ library
                  , time
                  , case-insensitive
                  , wai
+                 , markdown
+                 , blaze-html
 
 executable         hasknowledge
     if flag(library-only)

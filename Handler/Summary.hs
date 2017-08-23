@@ -3,6 +3,9 @@ module Handler.Summary where
 import Import
 import Data.Aeson.Types (Result (..))
 import Data.List (nub)
+import Text.Markdown
+import Text.Blaze.Html.Renderer.Text (renderHtml)
+import qualified Data.Text.Lazy as LazyText
 
 data FormSummary = FormSummary {
   fsTitle :: Text,
@@ -10,6 +13,9 @@ data FormSummary = FormSummary {
   fsContent :: Textarea,
   fsPublic :: Bool
                                }
+
+fromMarkdown :: Text -> Text
+fromMarkdown = LazyText.toStrict . renderHtml . (markdown def) . fromStrict -- Type conversions, so many, why!
 
 createSummaryForm :: Html -> MForm Handler (FormResult FormSummary, Widget)
 createSummaryForm = renderDivs $ FormSummary
@@ -38,7 +44,7 @@ postSummariesR = do
   mSummary <- parseJsonBody
   case mSummary of
     Success summary -> do
-      _ <- addSummary auth summary
+      _ <- addSummary auth $ summary {summaryContent = fromMarkdown $ summaryContent summary}
       redirect SummariesR
     Error error ->
       case result of

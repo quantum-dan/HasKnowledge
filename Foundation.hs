@@ -119,6 +119,8 @@ instance Yesod App where
     isAuthorized (SummaryR _) _ = return Authorized
     isAuthorized (TopicsJsonR _) _ = return Authorized
     isAuthorized (NotesJsonR _) _ = return Authorized
+    isAuthorized LoggedInR False = return Authorized
+    isAuthorized HomeDartR False = return Authorized
     isAuthorized _ _ = isAuthenticated -- Default to requiring login
 
     -- What messages should be logged. The following includes all messages when
@@ -153,9 +155,9 @@ instance YesodAuth App where
     type AuthId App = UserId
 
     -- Where to send a user after successful login
-    loginDest _ = HomeR
+    loginDest _ = HomeDartR
     -- Where to send a user after logout
-    logoutDest _ = HomeR
+    logoutDest _ = HomeDartR
     -- Override the above two destinations when a Referer: header is present
     redirectToReferer _ = True
 

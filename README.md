@@ -28,6 +28,7 @@ Backend: MySQL, accessed via Persistent, a functional-relational mapping library
 
 # Branches
 * master: Active development.
+* Testing: Testing updates before moving to stable.
 * stable: Tested and working; what is actually running.
 * backup: Periodic backups of the stable branch.
 

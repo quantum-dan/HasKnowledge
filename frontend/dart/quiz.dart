@@ -1,8 +1,9 @@
 import "dart:html";
 import "dart:convert";
 import "dart:async";
+import "generic.dart";
 
-const String baseUrl = "http://www.hasknowledge.net";
+const String baseUrl = "";
 const Map<String, String> paths = const {
   "quizzes": "/quizzes",
   "quiz": "/quiz/",
@@ -11,6 +12,36 @@ const Map<String, String> paths = const {
   "question": "/question/",
   "answer": "/answer"
 };
+
+class QuizCounter {
+  int correctCount;
+  int totalCount;
+
+  QuizCounter() {
+    correctCount = 0;
+    totalCount = 0;
+  }
+
+  void increment(bool correct, [int weight = 1]) {
+    totalCount += weight;
+    if (correct) {
+      correctCount += weight;
+    }
+  }
+
+  void correct([int weight = 1]) => increment(true, weight);
+  void incorrect([int weight = 1]) => increment(false, weight);
+
+  void reset() {
+    correctCount = 0;
+    totalCount = 0;
+  }
+
+  num fraction() => correctCount / totalCount;
+  String percentage() => "${correctCount/totalCount * 100}%";
+  String display() =>
+      "Total: $totalCount; Correct: $correctCount; Accuracy: ${percentage()}";
+}
 
 Future<List<Map>> getQuizList() async {
   var jsonString = await HttpRequest.getString(baseUrl + paths["quizzes"]);
@@ -23,6 +54,13 @@ Future<Map> getQuiz(int id) async {
   return JSON.decode(jsonString);
 }
 
+Future deleteQuiz(int id, Element quizElement) async {
+    var req = new HttpRequest();
+    req.open("DELETE", baseUrl + paths["quiz"] + id.toString());
+    req.send();
+    setupQuizzes(quizElement);
+}
+
 Future loadQuiz(int id, Element quizElement) async {
   Map quiz = await getQuiz(id);
   quizElement.children = [];
@@ -30,16 +68,27 @@ Future loadQuiz(int id, Element quizElement) async {
     quizElement.text = "Could not load quiz with ID ${quiz['id']}";
   } else {
     var quizDetails = quiz["maybequiz"];
+    QuizCounter counter = new QuizCounter();
     var quizDisplay = new UListElement()
+      ..classes.add("quiz")
       ..text = "${quizDetails['title']} (${quizDetails['topic']})";
     List<Map> questions = quiz["questions"];
     questions.forEach((question) {
       var output = new LIElement();
-      var inner = new UListElement()..text = "${question['question']}";
+      var inner = new UListElement()
+        ..text = "${question['question']}"
+        ..classes.add("question");
       question["answers"].forEach((answer) {
         var answerElem = new LIElement()..text = answer["content"];
+        var answerCorrect = new SpanElement()
+          ..text = "${answer['correct'] ? 'Correct!' : 'Incorrect'}"
+          ..classes.add("answer${answer['correct'] ? 'Correct' : 'Incorrect'}")
+          ..classes.add("answerNotice");
         answerElem.onClick.listen((_) {
-          answerElem.text += " ${answer['correct'] ? 'Correct!' : 'Incorrect'}";
+          if (!answerElem.children.contains(answerCorrect)) {
+            answerElem.children.add(answerCorrect);
+          }
+          counter.increment(answer["correct"]);
         });
         inner.children.add(answerElem);
       });
@@ -47,30 +96,93 @@ Future loadQuiz(int id, Element quizElement) async {
       quizDisplay.children.add(output);
     });
     quizElement.children = [quizDisplay];
+    var scoreContainer = new DivElement()..classes.add("quizScoreContainer");
+    var scoreDisplay = new SpanElement()..classes.add("quizScore");
+    var scoreButton = new InputElement()
+      ..type = "button"
+      ..value = "Show Score"
+      ..classes.add("quizScoreButton")
+      ..onClick.listen((_) {
+        scoreDisplay.text = counter.display();
+      });
+    scoreContainer.children = [scoreButton, scoreDisplay];
+    quizElement.children.add(scoreContainer);
     var reloadButton = new InputElement()
-        ..type = "button"
-        ..value = "Refresh quiz"
-        ..onClick.listen((_) {loadQuiz(id, quizElement);});
+      ..type = "button"
+      ..value = "Refresh quiz"
+      ..classes.add("quizReload")
+      ..onClick.listen((_) {
+        loadQuiz(id, quizElement);
+      });
     quizElement.children.add(reloadButton);
-    var questionFormElement = new DivElement();
-    quizElement.children.add(questionFormElement);
-    createQuestionForm(questionFormElement, quizElement, id);
+    if (quiz["owner"]) {
+      var questionFormElement = new DivElement()..classes.add("questionForm");
+      quizElement.children.add(questionFormElement);
+      createQuestionForm(questionFormElement, quizElement, id);
+
+      /* var deleteContainer = new DivElement()..classes.add("deleteQuizContainer");
+      var deleteButton = new InputElement()
+          ..type = "button"
+          ..classes.add("deleteQuiz")
+          ..value = "Delete Quiz";
+      var deleteConfirm = new InputElement()
+          ..type = "button"
+          ..classes.add("deleteQuizConfirm")
+          ..value = "Confirm"
+          ..onClick.listen((_) {deleteQuiz(id, quizElement);});
+      var deleteCancel = new InputElement()
+          ..type = "button"
+          ..classes.add("deleteQuizCancel")
+          ..value = "Cancel";
+      deleteCancel.onClick.listen((_) {deleteContainer.children.remove(deleteConfirm); deleteContainer.children.remove(deleteCancel);});
+      deleteButton.onClick.listen((_) {deleteContainer.children.add(deleteConfirm); deleteContainer.children.add(deleteCancel);});
+      deleteContainer.children = [deleteButton];
+
+      quizElement.children.add(deleteContainer); */
+    }
   }
 }
 
 Future setupQuizzes(Element quizElement) async {
   var quizzes = await getQuizList();
-  var quizList = new UListElement();
+  var quizInner = new DivElement();
+  var quizList = new UListElement()..classes.add("quizzes");
   quizzes.forEach((quiz) {
-    var listItem = new LIElement();
+    var listItem = new LIElement()..classes.add("quizListing");
     listItem.text =
-        "Title: ${quiz['title']} User ID: ${quiz['userId']} Public: ${quiz['publicAccess'] ? 'Yes' : 'No'}";
+        "${quiz['title']} (${quiz['topic']})";
     listItem.onClick.listen((_) {
-      loadQuiz(quiz["id"], quizElement);
+      loadQuiz(quiz["id"], quizInner);
     });
     quizList.children.add(listItem);
   });
-  quizElement.children = [quizList];
+  var quizTopics = quizzes.map((quiz) => quiz["topic"]).toSet(); // Ensures uniqueness
+  var filterButtons = new UListElement()
+      ..classes.add("filters");
+  filterButtons.children = quizTopics.map((topic) => new LIElement()
+          ..classes.add("filter")
+          ..children.add(new InputElement()
+              ..type = "button"
+              ..value = topic
+              ..onClick.listen((_) { setupFilteredQuizzes(quizInner, topic); })
+              )).toList();
+  quizInner.children = [quizList];
+  quizElement.children = [filterButtons, quizInner];
+}
+
+Future setupFilteredQuizzes(Element quizElement, String topic) async {
+    var quizzes = await getFiltered(Routes.quizzes(topic));
+    var quizList = new UListElement()..classes.add("quizzes");
+    for (Map quiz in quizzes) {
+        var listItem = new LIElement()
+            ..classes.add("quizListing")
+            ..text = "${quiz['title']} (${quiz['topic']})"
+            ..onClick.listen((_) {
+                loadQuiz(quiz["id"], quizElement);
+            });
+        quizList.children.add(listItem);
+    }
+    quizElement.children = [quizList];
 }
 
 Future postQuiz(Map quiz) async {
@@ -97,20 +209,34 @@ Future handleQuizForm(
 }
 
 Future setupQuizForm(Element quizFormElement, Element quizzesElement) async {
+  var description = new ParagraphElement()..text = "Create a Quiz";
   var inputs = [
+    description,
     new InputElement()
       ..type = "text"
+      ..classes.add("quizTitleInput")
+      ..classes.add("quizFormInput")
       ..placeholder = "Title",
     new InputElement()
       ..type = "text"
+      ..classes.add("quizTopicInput")
+      ..classes.add("quizFormInput")
       ..placeholder = "Topic",
-    new InputElement()..type = "checkbox"
+    new SpanElement()
+      ..text = "Public? "
+      ..children.add(
+        new InputElement()
+          ..type = "checkbox"
+          ..classes.add("quizPublicInput")
+      )
   ];
   var submitButton = new InputElement()
     ..type = "button"
     ..value = "Submit"
+    ..classes.add("quizSubmitInput")
+    ..classes.add("submit")
     ..onClick.listen((_) async {
-      await handleQuizForm(inputs[0], inputs[1], inputs[2]);
+      await handleQuizForm(inputs[1], inputs[2], inputs[3].children[0]);
       setupQuizzes(quizzesElement);
     });
   quizFormElement.children = inputs;
@@ -143,10 +269,10 @@ Future createQuestion(
   req.onReadyStateChange.listen((_) {
     print("Response to Question POST: " + req.responseText);
     if (req.readyState == 4) {
-        print("Convering result ${req.responseText} to JSON");
-        var questionId = JSON.decode(req.responseText);
-        print("Question ID: $questionId");
-        createAnswers(answerContainer.children, questionId);
+      print("Convering result ${req.responseText} to JSON");
+      var questionId = JSON.decode(req.responseText);
+      print("Question ID: $questionId");
+      createAnswers(answerContainer.children, questionId);
     }
   });
   print(JSON.encode(question));
@@ -154,15 +280,21 @@ Future createQuestion(
 }
 
 Future<List<InputElement>> addAnswerElement(Element targetElement) async {
-  DivElement container = new DivElement();
+  DivElement container = new DivElement()..classes.add("answerFieldsContainer");
   InputElement contentElem = new InputElement()
     ..type = "text"
+    ..classes.add("answerContentInput")
     ..placeholder = "Answer Content";
-  SpanElement correctLabel = new SpanElement()..text = "Correct? ";
-  InputElement correctElem = new InputElement()..type = "checkbox";
+  SpanElement correctLabel = new SpanElement()
+    ..text = "Correct? "
+    ..classes.add("answerCorrectFieldLabel");
+  InputElement correctElem = new InputElement()
+    ..type = "checkbox"
+    ..classes.add("answerCorrectField");
   InputElement removeElem = new InputElement()
     ..type = "button"
     ..value = "Remove answer"
+    ..classes.add("answerRemoveButton")
     ..onClick.listen((_) {
       targetElement.children.remove(container);
     });
@@ -171,35 +303,49 @@ Future<List<InputElement>> addAnswerElement(Element targetElement) async {
   return [contentElem, correctElem];
 }
 
-Future createQuestionForm(Element targetElement, Element quizElement, int quizId) async {
+Future createQuestionForm(
+    Element targetElement, Element quizElement, int quizId) async {
   InputElement questionField = new InputElement()
     ..type = "text"
+    ..classes.add("questionField")
     ..placeholder = "Question Text";
-  DivElement answerFields = new DivElement();
+  DivElement answerFields = new DivElement()..classes.add("answerFields");
   for (var i = 0; i < 4; ++i) {
     addAnswerElement(answerFields);
   }
   InputElement addAnswerField = new InputElement()
-      ..type = "button"
-      ..value = "Add Answer"
-      ..onClick.listen((_) {addAnswerElement(answerFields);});
+    ..type = "button"
+    ..value = "Add Answer"
+    ..classes.add("addAnswerButton")
+    ..onClick.listen((_) {
+      addAnswerElement(answerFields);
+    });
   InputElement submit = new InputElement()
     ..type = "button"
     ..value = "Submit"
+    ..classes.add("questionSubmitInput")
+    ..classes.add("submit")
     ..onClick.listen((_) {
       createQuestion(questionField, answerFields, quizId);
     });
-  targetElement.children = [questionField, addAnswerField, answerFields, submit];
+  targetElement.children = [
+    questionField,
+    addAnswerField,
+    answerFields,
+    submit
+  ];
 }
 
-void main() {
+Future runQuizzes(Element target) async {
   var quizElem = new DivElement();
-  var formElem = new DivElement();
-  var elem = new DivElement()
-    ..text = "Load quizzes"
+  var formElem = new DivElement()..classes.add("quizForm");
+  var elem = new InputElement()
+    ..type = "button"
+    ..value = "Load quizzes"
+    ..classes.add("loadQuizzes")
     ..onClick.listen((_) {
       setupQuizzes(quizElem);
     });
-  document.body.children..add(elem)..add(formElem)..add(quizElem);
+  target.children = (await isLoggedIn()) ? [elem, formElem, quizElem] : [elem, quizElem];
   setupQuizForm(formElem, quizElem);
 }

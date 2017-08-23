@@ -15,3 +15,12 @@ getFaviconR = do cacheSeconds $ 60 * 60 * 24 * 30 -- cache for a month
 getRobotsR :: Handler TypedContent
 getRobotsR = return $ TypedContent typePlain
                     $ toContent $(embedFile "config/robots.txt")
+
+getLoggedInR :: Handler Value
+getLoggedInR = do
+  mAuth <- maybeAuth
+  return $ object ["auth" .=
+                  case mAuth of
+                    Just _ -> True
+                    Nothing -> False
+                  ]
