@@ -150,7 +150,7 @@ Future setupQuizzes(Element quizElement) async {
   quizzes.forEach((quiz) {
     var listItem = new LIElement()..classes.add("quizListing");
     listItem.text =
-        "Title: ${quiz['title']} User ID: ${quiz['userId']} Public: ${quiz['publicAccess'] ? 'Yes' : 'No'}";
+        "${quiz['title']} (${quiz['topic']})";
     listItem.onClick.listen((_) {
       loadQuiz(quiz["id"], quizInner);
     });
@@ -236,7 +236,7 @@ Future setupQuizForm(Element quizFormElement, Element quizzesElement) async {
     ..classes.add("quizSubmitInput")
     ..classes.add("submit")
     ..onClick.listen((_) async {
-      await handleQuizForm(inputs[0], inputs[1], inputs[2]);
+      await handleQuizForm(inputs[1], inputs[2], inputs[3].children[0]);
       setupQuizzes(quizzesElement);
     });
   quizFormElement.children = inputs;
