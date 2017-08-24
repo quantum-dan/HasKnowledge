@@ -204,6 +204,9 @@ Future handleQuizForm(
     "userId": 0,
     "id": 0
   };
+  title.value = "";
+  topic.value = "";
+  publicAccess.checked = false;
   print("Quiz Data: $quizData");
   postQuiz(quizData);
 }
@@ -259,11 +262,16 @@ Future createAnswers(List<Element> answerElems, int questionId) async {
   });
   print(JSON.encode(answers));
   req.send(JSON.encode(answers));
+  for (var answerElem in answerElems) {
+      answerElem.children[0].value = "";
+      answerElem.children[2].checked = false;
+  }
 }
 
 Future createQuestion(
     InputElement questionElem, Element answerContainer, int quizId) async {
   Map question = {"question": questionElem.value, "quizId": quizId};
+  questionElem.value = "";
   var req = new HttpRequest();
   req.open("POST", baseUrl + paths["question"] + quizId.toString());
   req.onReadyStateChange.listen((_) {
