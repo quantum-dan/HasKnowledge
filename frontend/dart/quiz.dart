@@ -44,21 +44,21 @@ class QuizCounter {
 }
 
 Future<List<Map>> getQuizList() async {
-  var jsonString = await HttpRequest.getString(baseUrl + paths["quizzes"]);
+  String jsonString = await HttpRequest.getString(baseUrl + paths["quizzes"]);
   return JSON.decode(jsonString);
 }
 
 Future<Map> getQuiz(int id) async {
-  var jsonString =
+  String jsonString =
       await HttpRequest.getString(baseUrl + paths["quiz"] + id.toString());
   return JSON.decode(jsonString);
 }
 
 Future deleteQuiz(int id, Element quizElement) async {
-    var req = new HttpRequest();
-    req.open("DELETE", baseUrl + paths["quiz"] + id.toString());
-    req.send();
-    setupQuizzes(quizElement);
+  HttpRequest req = new HttpRequest();
+  req.open("DELETE", baseUrl + paths["quiz"] + id.toString());
+  req.send();
+  setupQuizzes(quizElement);
 }
 
 Future loadQuiz(int id, Element quizElement) async {
@@ -67,20 +67,20 @@ Future loadQuiz(int id, Element quizElement) async {
   if (quiz["maybequiz"] == null) {
     quizElement.text = "Could not load quiz with ID ${quiz['id']}";
   } else {
-    var quizDetails = quiz["maybequiz"];
+    Map quizDetails = quiz["maybequiz"];
     QuizCounter counter = new QuizCounter();
-    var quizDisplay = new UListElement()
+    UListElement quizDisplay = new UListElement()
       ..classes.add("quiz")
       ..text = "${quizDetails['title']} (${quizDetails['topic']})";
     List<Map> questions = quiz["questions"];
     questions.forEach((question) {
-      var output = new LIElement();
-      var inner = new UListElement()
+      LIElement output = new LIElement();
+      UListElement inner = new UListElement()
         ..text = "${question['question']}"
         ..classes.add("question");
       question["answers"].forEach((answer) {
-        var answerElem = new LIElement()..text = answer["content"];
-        var answerCorrect = new SpanElement()
+        LIElement answerElem = new LIElement()..text = answer["content"];
+        SpanElement answerCorrect = new SpanElement()
           ..text = "${answer['correct'] ? 'Correct!' : 'Incorrect'}"
           ..classes.add("answer${answer['correct'] ? 'Correct' : 'Incorrect'}")
           ..classes.add("answerNotice");
@@ -96,9 +96,10 @@ Future loadQuiz(int id, Element quizElement) async {
       quizDisplay.children.add(output);
     });
     quizElement.children = [quizDisplay];
-    var scoreContainer = new DivElement()..classes.add("quizScoreContainer");
-    var scoreDisplay = new SpanElement()..classes.add("quizScore");
-    var scoreButton = new InputElement()
+    DivElement scoreContainer = new DivElement()
+      ..classes.add("quizScoreContainer");
+    SpanElement scoreDisplay = new SpanElement()..classes.add("quizScore");
+    InputElement scoreButton = new InputElement()
       ..type = "button"
       ..value = "Show Score"
       ..classes.add("quizScoreButton")
@@ -107,7 +108,7 @@ Future loadQuiz(int id, Element quizElement) async {
       });
     scoreContainer.children = [scoreButton, scoreDisplay];
     quizElement.children.add(scoreContainer);
-    var reloadButton = new InputElement()
+    InputElement reloadButton = new InputElement()
       ..type = "button"
       ..value = "Refresh quiz"
       ..classes.add("quizReload")
@@ -116,7 +117,8 @@ Future loadQuiz(int id, Element quizElement) async {
       });
     quizElement.children.add(reloadButton);
     if (quiz["owner"]) {
-      var questionFormElement = new DivElement()..classes.add("questionForm");
+      DivElement questionFormElement = new DivElement()
+        ..classes.add("questionForm");
       quizElement.children.add(questionFormElement);
       createQuestionForm(questionFormElement, quizElement, id);
 
@@ -144,49 +146,51 @@ Future loadQuiz(int id, Element quizElement) async {
 }
 
 Future setupQuizzes(Element quizElement) async {
-  var quizzes = await getQuizList();
-  var quizInner = new DivElement();
-  var quizList = new UListElement()..classes.add("quizzes");
+  List<Map> quizzes = await getQuizList();
+  DivElement quizInner = new DivElement();
+  UListElement quizList = new UListElement()..classes.add("quizzes");
   quizzes.forEach((quiz) {
-    var listItem = new LIElement()..classes.add("quizListing");
-    listItem.text =
-        "${quiz['title']} (${quiz['topic']})";
+    LIElement listItem = new LIElement()..classes.add("quizListing");
+    listItem.text = "${quiz['title']} (${quiz['topic']})";
     listItem.onClick.listen((_) {
       loadQuiz(quiz["id"], quizInner);
     });
     quizList.children.add(listItem);
   });
-  var quizTopics = quizzes.map((quiz) => quiz["topic"]).toSet(); // Ensures uniqueness
-  var filterButtons = new UListElement()
-      ..classes.add("filters");
-  filterButtons.children = quizTopics.map((topic) => new LIElement()
-          ..classes.add("filter")
-          ..children.add(new InputElement()
-              ..type = "button"
-              ..value = topic
-              ..onClick.listen((_) { setupFilteredQuizzes(quizInner, topic); })
-              )).toList();
+  Set<String> quizTopics =
+      quizzes.map((quiz) => quiz["topic"]).toSet(); // Ensures uniqueness
+  UListElement filterButtons = new UListElement()..classes.add("filters");
+  filterButtons.children = quizTopics
+      .map((topic) => new LIElement()
+        ..classes.add("filter")
+        ..children.add(new InputElement()
+          ..type = "button"
+          ..value = topic
+          ..onClick.listen((_) {
+            setupFilteredQuizzes(quizInner, topic);
+          })))
+      .toList();
   quizInner.children = [quizList];
   quizElement.children = [filterButtons, quizInner];
 }
 
 Future setupFilteredQuizzes(Element quizElement, String topic) async {
-    var quizzes = await getFiltered(Routes.quizzes(topic));
-    var quizList = new UListElement()..classes.add("quizzes");
-    for (Map quiz in quizzes) {
-        var listItem = new LIElement()
-            ..classes.add("quizListing")
-            ..text = "${quiz['title']} (${quiz['topic']})"
-            ..onClick.listen((_) {
-                loadQuiz(quiz["id"], quizElement);
-            });
-        quizList.children.add(listItem);
-    }
-    quizElement.children = [quizList];
+  List<Map> quizzes = await getFiltered(Routes.quizzes(topic));
+  UListElement quizList = new UListElement()..classes.add("quizzes");
+  for (Map quiz in quizzes) {
+    LIElement listItem = new LIElement()
+      ..classes.add("quizListing")
+      ..text = "${quiz['title']} (${quiz['topic']})"
+      ..onClick.listen((_) {
+        loadQuiz(quiz["id"], quizElement);
+      });
+    quizList.children.add(listItem);
+  }
+  quizElement.children = [quizList];
 }
 
 Future postQuiz(Map quiz) async {
-  var req = new HttpRequest();
+  HttpRequest req = new HttpRequest();
   req.open("POST", baseUrl + paths["quizzes"]);
   req.onReadyStateChange.listen((_) {
     print(req.responseText);
@@ -197,7 +201,7 @@ Future postQuiz(Map quiz) async {
 
 Future handleQuizForm(
     InputElement title, InputElement topic, InputElement publicAccess) async {
-  Map quizData = {
+  Map<String, dynamic> quizData = {
     "title": title.value,
     "topic": topic.value,
     "publicAccess": publicAccess.checked,
@@ -212,8 +216,8 @@ Future handleQuizForm(
 }
 
 Future setupQuizForm(Element quizFormElement, Element quizzesElement) async {
-  var description = new ParagraphElement()..text = "Create a Quiz";
-  var inputs = [
+  ParagraphElement description = new ParagraphElement()..text = "Create a Quiz";
+  List<Element> inputs = [
     description,
     new InputElement()
       ..type = "text"
@@ -227,13 +231,11 @@ Future setupQuizForm(Element quizFormElement, Element quizzesElement) async {
       ..placeholder = "Topic",
     new SpanElement()
       ..text = "Public? "
-      ..children.add(
-        new InputElement()
-          ..type = "checkbox"
-          ..classes.add("quizPublicInput")
-      )
+      ..children.add(new InputElement()
+        ..type = "checkbox"
+        ..classes.add("quizPublicInput"))
   ];
-  var submitButton = new InputElement()
+  InputElement submitButton = new InputElement()
     ..type = "button"
     ..value = "Submit"
     ..classes.add("quizSubmitInput")
@@ -247,24 +249,23 @@ Future setupQuizForm(Element quizFormElement, Element quizzesElement) async {
 }
 
 Future createAnswers(List<Element> answerElems, int questionId) async {
-  var answers = answerElems.map((elem) {
-    Map answerData = {
-      "content": elem.children[0].value,
-      "correct": elem.children[2].checked,
-      "questionId": questionId
-    };
-    return answerData;
-  }).toList();
-  var req = new HttpRequest();
+  List<Map<String, dynamic>> answers = answerElems
+      .map((elem) => {
+            "content": elem.children[0].value,
+            "correct": elem.children[2].checked,
+            "questionId": questionId
+          })
+      .toList();
+  HttpRequest req = new HttpRequest();
   req.open("POST", baseUrl + paths["answer"]);
   req.onReadyStateChange.listen((_) {
     print(req.responseText);
   });
   print(JSON.encode(answers));
   req.send(JSON.encode(answers));
-  for (var answerElem in answerElems) {
-      answerElem.children[0].value = "";
-      answerElem.children[2].checked = false;
+  for (Element answerElem in answerElems) {
+    answerElem.children[0].value = "";
+    answerElem.children[2].checked = false;
   }
 }
 
@@ -272,13 +273,13 @@ Future createQuestion(
     InputElement questionElem, Element answerContainer, int quizId) async {
   Map question = {"question": questionElem.value, "quizId": quizId};
   questionElem.value = "";
-  var req = new HttpRequest();
+  HttpRequest req = new HttpRequest();
   req.open("POST", baseUrl + paths["question"] + quizId.toString());
   req.onReadyStateChange.listen((_) {
     print("Response to Question POST: " + req.responseText);
     if (req.readyState == 4) {
       print("Convering result ${req.responseText} to JSON");
-      var questionId = JSON.decode(req.responseText);
+      int questionId = JSON.decode(req.responseText);
       print("Question ID: $questionId");
       createAnswers(answerContainer.children, questionId);
     }
@@ -318,7 +319,7 @@ Future createQuestionForm(
     ..classes.add("questionField")
     ..placeholder = "Question Text";
   DivElement answerFields = new DivElement()..classes.add("answerFields");
-  for (var i = 0; i < 4; ++i) {
+  for (int i = 0; i < 4; ++i) {
     addAnswerElement(answerFields);
   }
   InputElement addAnswerField = new InputElement()
@@ -345,15 +346,16 @@ Future createQuestionForm(
 }
 
 Future runQuizzes(Element target) async {
-  var quizElem = new DivElement();
-  var formElem = new DivElement()..classes.add("quizForm");
-  var elem = new InputElement()
+  DivElement quizElem = new DivElement();
+  DivElement formElem = new DivElement()..classes.add("quizForm");
+  InputElement elem = new InputElement()
     ..type = "button"
     ..value = "Load quizzes"
     ..classes.add("loadQuizzes")
     ..onClick.listen((_) {
       setupQuizzes(quizElem);
     });
-  target.children = (await isLoggedIn()) ? [elem, formElem, quizElem] : [elem, quizElem];
+  target.children =
+      (await isLoggedIn()) ? [elem, formElem, quizElem] : [elem, quizElem];
   setupQuizForm(formElem, quizElem);
 }

@@ -8,10 +8,10 @@ const String summariesUrl = "summaries";
 const String summaryUrl = "summary/";
 
 Future postSummary(Map summary) async {
-  var summaryJson = JSON.encode(summary);
+  String summaryJson = JSON.encode(summary);
   print(summary);
   print(summaryJson);
-  var req = new HttpRequest();
+  HttpRequest req = new HttpRequest();
   req.open("POST", baseUrl + summariesUrl);
   req.onReadyStateChange.listen((_) {
     print("Summary POST response: ${req.responseText}");
@@ -37,30 +37,31 @@ Future handleSummaryPost(InputElement titleField, InputElement topicField,
 }
 
 Future setupSummaryForm(Element target) async {
-  var description = new ParagraphElement()..text = "Create a Summary";
-  var titleField = new InputElement()
+  ParagraphElement description = new ParagraphElement()
+    ..text = "Create a Summary";
+  InputElement titleField = new InputElement()
     ..type = "text"
     ..classes.add("summaryTitleField")
     ..placeholder = "Title";
-  var topicField = new InputElement()
+  InputElement topicField = new InputElement()
     ..type = "text"
     ..classes.add("summaryTopicField")
     ..placeholder = "Topic";
-  var publicAccessContainer = new DivElement()
+  DivElement publicAccessContainer = new DivElement()
     ..text = "Public? "
     ..classes.add("summaryPublicContainer");
-  var publicAccessField = new InputElement()
+  InputElement publicAccessField = new InputElement()
     ..type = "checkbox"
     ..classes.add("summaryPublicField");
   publicAccessContainer.children.add(publicAccessField);
-  var contentField = new TextAreaElement()
+  TextAreaElement contentField = new TextAreaElement()
     ..placeholder = "Summary"
     ..rows = 20
     ..classes.add("summaryContentField");
-  var contentContainer = new DivElement()
+  DivElement contentContainer = new DivElement()
     ..children = [contentField]
     ..classes.add("summaryContentFieldContainer");
-  var submitButton = new InputElement()
+  InputElement submitButton = new InputElement()
     ..type = "button"
     ..value = "Submit"
     ..classes.add("summarySubmitInput")
@@ -69,7 +70,7 @@ Future setupSummaryForm(Element target) async {
       handleSummaryPost(
           titleField, topicField, publicAccessField, contentField);
     });
-  var submitContainer = new DivElement()
+  DivElement submitContainer = new DivElement()
     ..children = [submitButton]
     ..classes.add("summarySubmitContainer");
   target.children = [
@@ -83,12 +84,13 @@ Future setupSummaryForm(Element target) async {
 }
 
 Element summaryToHtml(Map summary) {
-  var container = new LIElement()
+  LIElement container = new LIElement()
     ..classes.add("summaryListing")
     ..text = "${summary['title']} (${summary['topic']})";
-  var contents = new DivElement()..classes.add("summaryContent")
-      ..innerHtml = summary["content"];
-  var expandToggle = new InputElement()
+  DivElement contents = new DivElement()
+    ..classes.add("summaryContent")
+    ..innerHtml = summary["content"];
+  InputElement expandToggle = new InputElement()
     ..type = "button"
     ..classes.add("summaryExpandToggle")
     ..value = "Expand";
@@ -116,22 +118,26 @@ Element summaryToHtml(Map summary) {
 }
 
 Future loadSummaries(Element target) async {
-  var req = new HttpRequest();
-  var innerTarget = new UListElement()..classes.add("summaries");
-  var filterList = new UListElement()
-      ..classes.add("filters");
+  HttpRequest req = new HttpRequest();
+  UListElement innerTarget = new UListElement()..classes.add("summaries");
+  UListElement filterList = new UListElement()..classes.add("filters");
   target.children = [filterList, innerTarget];
   req.onReadyStateChange.listen((_) {
     if (req.readyState == 4) {
       print(req.responseText);
       List<Map> summariesJson = JSON.decode(req.responseText);
-      filterList.children = summariesJson.map((summary) => summary["topic"]).toSet()
+      filterList.children = summariesJson
+          .map((summary) => summary["topic"])
+          .toSet()
           .map((topic) => new LIElement()
-                  ..classes.add("filter")
-                  ..children.add(new InputElement()
-                      ..type = "button"
-                      ..value = topic
-                      ..onClick.listen((_) { loadFilteredSummaries(innerTarget, topic); }))).toList();
+            ..classes.add("filter")
+            ..children.add(new InputElement()
+              ..type = "button"
+              ..value = topic
+              ..onClick.listen((_) {
+                loadFilteredSummaries(innerTarget, topic);
+              })))
+          .toList();
       List<Element> summaries = summariesJson.map(summaryToHtml).toList();
       innerTarget.children = summaries;
     }
@@ -141,7 +147,8 @@ Future loadSummaries(Element target) async {
 }
 
 Future loadFilteredSummaries(Element target, String topic) async {
-    target.children = (await getFiltered(Routes.summaries(topic))).map(summaryToHtml).toList();
+  target.children =
+      (await getFiltered(Routes.summaries(topic))).map(summaryToHtml).toList();
 }
 
 Future runSummaries(Element target) async {
@@ -154,11 +161,13 @@ Future runSummaries(Element target) async {
     ..onClick.listen((_) {
       loadSummaries(summariesElem);
     });
-  var loggedIn = await isLoggedIn();
+  bool loggedIn = await isLoggedIn();
   Element summaryForm = new DivElement()..classes.add("summaryForm");
   if (loggedIn) {
     setupSummaryForm(summaryForm);
   }
-  container.children = loggedIn ? [loadButton, summariesElem, summaryForm] : [loadButton, summariesElem];
+  container.children = loggedIn
+      ? [loadButton, summariesElem, summaryForm]
+      : [loadButton, summariesElem];
   target.children = [container];
 }
