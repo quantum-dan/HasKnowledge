@@ -75,24 +75,53 @@ Future loadQuiz(int id, Element quizElement) async {
     List<Map> questions = quiz["questions"];
     questions.forEach((question) {
       LIElement output = new LIElement();
-      UListElement inner = new UListElement()
-        ..text = "${question['question']}"
-        ..classes.add("question");
-      question["answers"].forEach((answer) {
-        LIElement answerElem = new LIElement()..text = answer["content"];
-        SpanElement answerCorrect = new SpanElement()
-          ..text = "${answer['correct'] ? 'Correct!' : 'Incorrect'}"
-          ..classes.add("answer${answer['correct'] ? 'Correct' : 'Incorrect'}")
+      if (question["answers"]
+          .map((answer) => answer["correct"])
+          .fold(true, (a, b) => a && b)) {
+        SpanElement inner = new SpanElement()
+          ..text = "${question['question']}"
+          ..classes.add("question");
+        InputElement entry = new InputElement()..type = "text";
+        SpanElement answerCorrect(bool correct) => new SpanElement()
+          ..text = correct
+              ? "Correct!"
+              : "Incorrect. Correct answers: ${question['answers'].map((answer) => answer['content']).toList().toString()}"
+          ..classes.add("answer${correct ?  'Correct' : 'Incorrect'}")
           ..classes.add("answerNotice");
-        answerElem.onClick.listen((_) {
-          if (!answerElem.children.contains(answerCorrect)) {
-            answerElem.children.add(answerCorrect);
+        entry.onChange.listen((_) {
+          if ((question["answers"].map((answer) => answer["content"]))
+              .contains(entry.value)) {
+            counter.increment(true);
+            inner.children.add(answerCorrect(true));
+          } else {
+            counter.increment(false);
+            inner.children.add(answerCorrect(false));
           }
-          counter.increment(answer["correct"]);
         });
-        inner.children.add(answerElem);
-      });
-      output.children = [inner];
+        inner.children.add(entry);
+        output.children = [inner];
+      } else {
+        UListElement inner = new UListElement()
+          ..text = "${question['question']}"
+          ..classes.add("question");
+
+        question["answers"].forEach((answer) {
+          LIElement answerElem = new LIElement()..text = answer["content"];
+          SpanElement answerCorrect = new SpanElement()
+            ..text = "${answer['correct'] ? 'Correct!' : 'Incorrect'}"
+            ..classes
+                .add("answer${answer['correct'] ? 'Correct' : 'Incorrect'}")
+            ..classes.add("answerNotice");
+          answerElem.onClick.listen((_) {
+            if (!answerElem.children.contains(answerCorrect)) {
+              answerElem.children.add(answerCorrect);
+            }
+            counter.increment(answer["correct"]);
+          });
+          inner.children.add(answerElem);
+        });
+        output.children = [inner];
+      }
       quizDisplay.children.add(output);
     });
     quizElement.children = [quizDisplay];

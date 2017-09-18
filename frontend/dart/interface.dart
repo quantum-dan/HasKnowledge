@@ -39,14 +39,20 @@ class PostRequests {
     static Future quiz(PostQuiz data) async => PostRequests.json(data.toJSON(), Routes.quizzes);
     static Future question(Question data, int quizId) async {
         String questionIdJson = await PostRequests.json(data.toJSON(), Routes.questionPost(quizId));
-        int questionId = JSON.decode(quizIdJson);
+        int questionId = JSON.decode(questionIdJson);
+        for (Answer answer in data.answers) answer.questionId = questionId;
+        PostRequests.json(Answer.manyToJSON(data.answers), Routes.answerPost);
+    }
+
+    static Future summary(Summary data, bool publicAccess)
+}
 
 class PostQuiz {
     String topic;
     String title;
     bool publicAccess;
 
-    String toJSON() => JSON.encode(Map {
+    String toJSON() => JSON.encode({
         "topic": this.topic,
         "title": this.title,
         "userId": 0,
@@ -85,11 +91,17 @@ class Answer {
     this.questionId = json["questionId"];
   }
 
-  String toJSON() => JSON.encode(Map {
+  String toJSON() => JSON.encode({
       "correct": this.correct,
       "content": this.content,
       "questionId": this.questionId
   });
+
+  static String manyToJSON(List<Answer> answers) => JSON.encode(answers.map((answer) => {
+      "correct": answer.correct,
+      "content": answer.content,
+      "questionId": answer.questionId
+  }).toList());
 }
 
 class Question {
@@ -102,7 +114,7 @@ class Question {
         json["answers"].map((answer) => new Answer.fromJSON(answer)).toList();
   }
 
-  String toJSON() => JSON.encode(Map {
+  String toJSON() => JSON.encode({
       "question": this.question,
       "quizId": 0
   });
@@ -129,4 +141,13 @@ class Summary {
   String content;
   Summary(this.title, this.topic, this.content);
   Summary.fromJSON(Map json): this(json["title"], json["topic"], json["content"]);
+
+  String toJSON(bool publicAccess) => JSON.encode({
+      "title": this.title,
+      "topic": this.topic,
+      "content": this.content,
+      "publicAccess": publicAccess,
+      "id": 0,
+      "userId": 0
+  });
 }
